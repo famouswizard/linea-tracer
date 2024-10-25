@@ -37,7 +37,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Bin implements OperationSetModule<BinOperation> {
 
   private final ModuleOperationStackedSet<BinOperation> operations =
-      new ModuleOperationStackedSet<>();
+      new ModuleOperationStackedSet<>(10100,10100);
 
   @Override
   public String moduleKey() {

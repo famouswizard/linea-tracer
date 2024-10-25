@@ -38,7 +38,7 @@ public class Ext implements OperationSetModule<ExtOperation> {
 
   @Getter
   private final ModuleOperationStackedSet<ExtOperation> operations =
-      new ModuleOperationStackedSet<>();
+      new ModuleOperationStackedSet<>(50_000, 50_000);
 
   @Override
   public String moduleKey() {

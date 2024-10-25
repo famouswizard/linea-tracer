@@ -46,7 +46,7 @@ public class Wcp implements Module {
   private final ModuleOperationStackedSet<WcpOperation> leqOperations =
       new ModuleOperationStackedSet<>();
   private final ModuleOperationStackedSet<WcpOperation> gtOperations =
-      new ModuleOperationStackedSet<>();
+      new ModuleOperationStackedSet<>(10100,10100);
   private final ModuleOperationStackedSet<WcpOperation> geqOperations =
       new ModuleOperationStackedSet<>();
   private final ModuleOperationStackedSet<WcpOperation> sltOperations =
@@ -54,9 +54,9 @@ public class Wcp implements Module {
   private final ModuleOperationStackedSet<WcpOperation> sgtOperations =
       new ModuleOperationStackedSet<>();
   private final ModuleOperationStackedSet<WcpOperation> eqOperations =
-      new ModuleOperationStackedSet<>();
+      new ModuleOperationStackedSet<>(10100,10100);
   private final ModuleOperationStackedSet<WcpOperation> isZeroOperations =
-      new ModuleOperationStackedSet<>();
+      new ModuleOperationStackedSet<>(10100,10100);
 
   /**
    * For perf, we split the WcpOperations into different StackedSet in order to - have smaller

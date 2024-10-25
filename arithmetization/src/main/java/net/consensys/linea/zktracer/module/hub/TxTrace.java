@@ -29,7 +29,7 @@ import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 @Accessors(fluent = true)
 public class TxTrace {
   /** The {@link TraceSection} of which this transaction trace is made of */
-  @Getter private final List<TraceSection> trace = new ArrayList<>();
+  @Getter private final List<TraceSection> trace = new ArrayList<>(720100);
 
   public int size() {
     return this.trace.size();
