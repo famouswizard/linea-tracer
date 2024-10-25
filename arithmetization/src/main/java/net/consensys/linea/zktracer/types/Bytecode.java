@@ -27,8 +27,6 @@ import org.hyperledger.besu.evm.Code;
 /** This class is intended to store a bytecode and its memoized hash. */
 public final class Bytecode {
   /** initializing the executor service before creating the EMPTY bytecode. */
-  private static final ExecutorService executorService = Executors.newCachedThreadPool();
-
   /** The empty bytecode. */
   public static Bytecode EMPTY = new Bytecode(Bytes.EMPTY);
 
@@ -36,7 +34,7 @@ public final class Bytecode {
   private final Bytes bytecode;
 
   /** The bytecode hash; precomputed & memoized asynchronously. */
-  private Future<Hash> hash;
+  private Hash hash;
 
   /**
    * Create an instance from {@link Bytes}.
@@ -45,7 +43,7 @@ public final class Bytecode {
    */
   public Bytecode(Bytes bytes) {
     this.bytecode = Objects.requireNonNullElse(bytes, Bytes.EMPTY);
-    hash = executorService.submit(() -> computeCodeHash());
+    hash = computeCodeHash();
   }
 
   /**
@@ -55,7 +53,7 @@ public final class Bytecode {
    */
   public Bytecode(Code code) {
     this.bytecode = code.getBytes();
-    this.hash = CompletableFuture.completedFuture(code.getCodeHash());
+    this.hash = code.getCodeHash();
   }
 
   /**
@@ -92,12 +90,10 @@ public final class Bytecode {
    */
   public Hash getCodeHash() {
     try {
-      return hash.get();
+      return hash;
     } catch (Exception e) {
       log.error("Error while precomputing code hash", e);
-      Hash computedHash = computeCodeHash();
-      hash = CompletableFuture.completedFuture(computedHash);
-      return computedHash;
+      return computeCodeHash();
     }
   }
 
