@@ -474,7 +474,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall callDataExtractionForEcadd(
-      final Hub hub, PrecompileSubsection subsection, boolean failureKnownToRam) {
+      final Hub hub, PrecompileSubsection subsection, boolean successBit) {
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(Optional.of(subsection.callerMemorySnapshot()))
@@ -483,7 +483,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceOffset(EWord.of(subsection.callDataMemorySpan.offset()))
         .size(subsection.callDataMemorySpan.length())
         .referenceSize(128)
-        .successBit(!failureKnownToRam)
+        .successBit(successBit)
         .setEcData()
         .phase(PHASE_ECADD_DATA);
   }
@@ -514,7 +514,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall callDataExtractionForEcmul(
-      final Hub hub, final PrecompileSubsection subsection, boolean failureKnownToRam) {
+      final Hub hub, final PrecompileSubsection subsection, boolean successBit) {
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(Optional.of(subsection.callerMemorySnapshot()))
@@ -523,7 +523,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceOffset(EWord.of(subsection.callDataMemorySpan.offset()))
         .size(subsection.callDataMemorySpan.length())
         .referenceSize(96)
-        .successBit(!failureKnownToRam)
+        .successBit(successBit)
         .setEcData()
         .phase(PHASE_ECMUL_DATA);
   }
@@ -554,7 +554,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall callDataExtractionForEcpairing(
-      final Hub hub, PrecompileSubsection subsection, boolean failureKnownToRam) {
+      final Hub hub, PrecompileSubsection subsection, boolean successBit) {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
@@ -564,7 +564,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceOffset(EWord.of(subsection.callDataMemorySpan.offset()))
         .size(subsection.callDataMemorySpan.length())
         .referenceSize(subsection.callDataMemorySpan.length())
-        .successBit(!failureKnownToRam)
+        .successBit(successBit)
         .setEcData()
         .phase(PHASE_ECPAIRING_DATA);
   }

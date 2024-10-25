@@ -95,9 +95,8 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
 
     if (nonemptyCallData) {
       switch (flag()) {
-        case PRC_ECRECOVER -> {
-          firstMmuCall = MmuCall.callDataExtractionForEcrecover(hub, this, successBitMmuCall);
-        }
+        case PRC_ECRECOVER -> firstMmuCall =
+            MmuCall.callDataExtractionForEcrecover(hub, this, successBitMmuCall);
         case PRC_ECADD -> firstMmuCall =
             MmuCall.callDataExtractionForEcadd(hub, this, successBitMmuCall);
         case PRC_ECMUL -> firstMmuCall =
@@ -152,7 +151,6 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
         }
         case PRC_ECPAIRING -> {
           secondMmuCall = MmuCall.fullReturnDataTransferForEcpairing(hub, this, successBitMmuCall);
-
           if (callerMayReceiveReturnData) {
             thirdMmuCall = MmuCall.partialCopyOfReturnDataForEcpairing(hub, this);
           }
