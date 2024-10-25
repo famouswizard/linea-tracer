@@ -54,7 +54,7 @@ public class InvalidCodePrefixExceptionTest {
             .gasLimit(0xffffffL)
             .payload(
                 Bytes.fromHexString(
-                  "0xef6000600052")) // bytecode starting with 0xef, which is EIP_3541_MARKER
+                    "0xef6000600052")) // bytecode starting with 0xef, which is EIP_3541_MARKER
             .build();
 
     Address deployedAddress = AddressUtils.effectiveToAddress(tx);

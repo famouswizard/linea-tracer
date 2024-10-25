@@ -37,8 +37,8 @@ public class StaticExceptionTest {
   void staticExceptionDueToCallWithNonZeroValueTest(int value) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
-        .push(0) // return data size
-        .push(0) // return data offset
+        .push(0) // return at capacity
+        .push(0) // return at offset
         .push(0) // call data size
         .push(0) // call data offset
         .push("ca11ee") // address
@@ -47,8 +47,8 @@ public class StaticExceptionTest {
 
     BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram();
     calleeProgram
-        .push(0) // return data size
-        .push(0) // return data offset
+        .push(0) // return at capacity
+        .push(0) // return at offset
         .push(0) // call data size
         .push(0) // call data offset
         .push(value) // value
@@ -79,8 +79,8 @@ public class StaticExceptionTest {
   void staticExceptionDueToSStoreTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
-        .push(0) // return data size
-        .push(0) // return data offset
+        .push(0) // return at capacity
+        .push(0) // return at offset
         .push(0) // call data size
         .push(0) // call data offset
         .push("ca11ee") // address
@@ -111,8 +111,8 @@ public class StaticExceptionTest {
   void staticExceptionDueToSelfDestructTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
-        .push(0) // return data size
-        .push(0) // return data offset
+        .push(0) // return at capacity
+        .push(0) // return at offset
         .push(0) // call data size
         .push(0) // call data offset
         .push("ca11ee") // address
@@ -144,8 +144,8 @@ public class StaticExceptionTest {
   void staticExceptionDueToLogTest(int numberOfTopics) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
-        .push(0) // return data size
-        .push(0) // return data offset
+        .push(0) // return at capacity
+        .push(0) // return at offset
         .push(0) // call data size
         .push(0) // call data offset
         .push("ca11ee") // address
@@ -180,8 +180,8 @@ public class StaticExceptionTest {
   void staticExceptionDueToCreateTest(String opCodeName) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
-        .push(0) // return data size
-        .push(0) // return data offset
+        .push(0) // return at capacity
+        .push(0) // return at offset
         .push(0) // call data size
         .push(0) // call data offset
         .push("ca11ee") // address
