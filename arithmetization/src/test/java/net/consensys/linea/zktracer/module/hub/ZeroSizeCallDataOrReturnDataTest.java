@@ -31,8 +31,8 @@ public class ZeroSizeCallDataOrReturnDataTest {
   void zeroSizeHugeReturnAtOffsetTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
-        .push(0) // return data size
-        .push("ff".repeat(32)) // return data offset
+        .push(0) // return at capacity
+        .push("ff".repeat(32)) // return at offset
         .push(0) // call data size
         .push(0) // call data offset
         .push("ca11ee") // address
@@ -58,8 +58,8 @@ public class ZeroSizeCallDataOrReturnDataTest {
   void zeroSizeHugeCallDataOffsetTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
-        .push(0) // return data size
-        .push(0) // return data offset
+        .push(0) // return at capacity
+        .push(0) // return at offset
         .push(0) // call data size
         .push("ff".repeat(32)) // call data offset
         .push("ca11ee") // address
@@ -84,8 +84,8 @@ public class ZeroSizeCallDataOrReturnDataTest {
   void zeroSizeHugeReturnDataOffsetTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
-        .push(0) // return data size
-        .push(0) // return data offset
+        .push(0) // return at capacity
+        .push(0) // return at offset
         .push(0) // call data size
         .push(0) // call data offset
         .push("ca11ee") // address

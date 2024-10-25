@@ -167,34 +167,34 @@ public class OperationAncillaries {
       case CALL, CALLCODE -> {
         long callDataOffset = Words.clampedToLong(frame.getStackItem(3));
         long callDataSize = Words.clampedToLong(frame.getStackItem(4));
-        long returnDataOffset = Words.clampedToLong(frame.getStackItem(5));
-        long returnDataSize = Words.clampedToLong(frame.getStackItem(6));
+        long returnAtOffset = Words.clampedToLong(frame.getStackItem(5));
+        long returnAtCapacity = Words.clampedToLong(frame.getStackItem(6));
 
         Preconditions.checkArgument(!(callDataOffset >= Math.pow(2, 32) && callDataSize == 0));
-        Preconditions.checkArgument(!(returnDataOffset >= Math.pow(2, 32) && returnDataSize == 0));
+        Preconditions.checkArgument(!(returnAtOffset >= Math.pow(2, 32) && returnAtCapacity == 0));
 
         System.out.println("callDataOffset: " + callDataOffset);
         System.out.println("callDataSize: " + callDataSize);
-        System.out.println("returnDataOffset: " + returnDataOffset);
-        System.out.println("returnDataSize: " + returnDataSize);
+        System.out.println("returnAtOffset: " + returnAtOffset);
+        System.out.println("returnAtCapacity: " + returnAtCapacity);
 
-        return MemorySpan.fromStartLength(returnDataOffset, returnDataSize);
+        return MemorySpan.fromStartLength(returnAtOffset, returnAtCapacity);
       }
       case DELEGATECALL, STATICCALL -> {
         long callDataOffset = Words.clampedToLong(frame.getStackItem(2));
         long callDataSize = Words.clampedToLong(frame.getStackItem(3));
-        long returnDataOffset = Words.clampedToLong(frame.getStackItem(4));
-        long returnDataSize = Words.clampedToLong(frame.getStackItem(5));
+        long returnAtOffset = Words.clampedToLong(frame.getStackItem(4));
+        long returnAtCapacity = Words.clampedToLong(frame.getStackItem(5));
 
         System.out.println("callDataOffset: " + callDataOffset);
         System.out.println("callDataSize: " + callDataSize);
-        System.out.println("returnDataOffset: " + returnDataOffset);
-        System.out.println("returnDataSize: " + returnDataSize);
+        System.out.println("returnAtOffset: " + returnAtOffset);
+        System.out.println("returnDataSize: " + returnAtCapacity);
 
         Preconditions.checkArgument(!(callDataOffset >= Math.pow(2, 32) && callDataSize == 0));
-        Preconditions.checkArgument(!(returnDataOffset >= Math.pow(2, 32) && returnDataSize == 0));
+        Preconditions.checkArgument(!(returnAtOffset >= Math.pow(2, 32) && returnAtCapacity == 0));
 
-        return MemorySpan.fromStartLength(returnDataOffset, returnDataSize);
+        return MemorySpan.fromStartLength(returnAtOffset, returnAtCapacity);
       }
       default -> throw new IllegalArgumentException(
           "returnDataRequestedSegment called outside of a *CALL");
