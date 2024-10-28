@@ -443,7 +443,7 @@ public class StateManagerSolidityTest {
 
 
   @Test
-  void testConflationMap() {
+  void testConflationMapStorage() {
     // initialize the test context
     this.ctxt = new TestContext();
     this.ctxt.initializeTestContext();
@@ -529,7 +529,7 @@ public class StateManagerSolidityTest {
 
 
   @Test
-  void testConflationMapTransfers() {
+  void testConflationMapAccount() {
     // initialize the test context
     this.ctxt = new TestContext();
     this.ctxt.initializeTestContext();
@@ -537,10 +537,6 @@ public class StateManagerSolidityTest {
     TransactionProcessingResultValidator resultValidator = getValidator();
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
-    // compute the addresses for several accounts that will be deployed later
-    ctxt.addresses[3] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000002");
-    ctxt.addresses[4] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000003");
-    ctxt.addresses[5] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000004");
 
     // prepare a multi-block execution of transactions
     MultiBlockExecutionEnvironment.builder()
@@ -548,9 +544,42 @@ public class StateManagerSolidityTest {
             .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))
             // test storage operations for an account prexisting in the state
             .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 8L, false, BigInteger.ONE)))
+            //.addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[2], ctxt.addresses[0], 20L, false, BigInteger.ONE)))
+            //.addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 50L, true, BigInteger.ONE)))
+            //.addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 10L, false, BigInteger.ONE)))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();
+
+    Map<Address, TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>>
+            conflationMap = stateManagerMetadata.getAccountFirstLastConflationMap();
+
+    // prepare data for asserts
+    // expected first values for the keys we are testing
+    Wei[] expectedFirst = {
+            TestContext.defaultBalance,
+            TestContext.defaultBalance,
+    };
+    // expected last values for the keys we are testing
+    Wei[] expectedLast = {
+            TestContext.defaultBalance.subtract(8L),
+            TestContext.defaultBalance.add(8L),
+    };
+
+    // prepare the key pairs
+    Address[] keys = {
+            ctxt.initialAccounts[0].getAddress(),
+            ctxt.initialAccounts[2].getAddress(),
+    };
+
+    for (int i = 1; i < keys.length; i++) {
+      TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>
+              accountData = conflationMap.get(keys[i]);
+      // asserts for the first and last storage values in conflation
+      assertEquals(accountData.getFirst().oldState().balance(), expectedFirst[i]);
+      assertEquals(accountData.getLast().newState().balance(), expectedLast[i]);
+    }
+
 
     System.out.println("Done");
   }
