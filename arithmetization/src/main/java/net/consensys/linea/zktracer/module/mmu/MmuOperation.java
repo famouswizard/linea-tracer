@@ -19,20 +19,7 @@ the License for the
 package net.consensys.linea.zktracer.module.mmu;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_LIMB_VANISHES;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_ANY_TO_RAM_WITH_PADDING;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_BLAKE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_INVALID_CODE_PREFIX;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MLOAD;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MODEXP_DATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MODEXP_ZERO;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MSTORE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MSTORE8;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_EXO_WITH_PADDING;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_RAM_SANS_PADDING;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.mmio.MmioData.lineCountOfMmioInstruction;
 import static net.consensys.linea.zktracer.types.Bytecodes.readBytes;
 import static net.consensys.linea.zktracer.types.Bytecodes.readLimb;
@@ -79,6 +66,9 @@ public class MmuOperation extends ModuleOperation {
     return mmuData.mmuCall().traceMe();
   }
 
+  private final List<Integer> vanishingLimbMmioInstructions =
+      List.of(MMIO_INST_RAM_VANISHES, MMIO_INST_LIMB_VANISHES, MMIO_INST_RAM_EXCISION);
+
   @Override
   protected int computeLineCount() {
     checkState(traceMe(), "Cannot compute if traceMe is false");
@@ -96,16 +86,9 @@ public class MmuOperation extends ModuleOperation {
   }
 
   int trace(final int mmuStamp, final int mmioStamp, Trace trace) {
-
     setInstructionFlag();
-
-    // Trace Macro Instruction decoding Row
     traceMacroRow(mmuStamp, mmioStamp, trace);
-
-    // Trace Preprocessing rows
     tracePreprocessingRows(mmuData, mmuStamp, mmioStamp, trace);
-
-    // Trace Micro Instructions Rows
     return traceMicroRows(mmuStamp, mmioStamp, trace);
   }
 
@@ -164,7 +147,7 @@ public class MmuOperation extends ModuleOperation {
       for (MmuToMmioInstruction mmioInst : mmuData.mmuToMmioInstructions()) {
 
         // Limb remains zero for LIMB_VANISHES instructions
-        if (mmioInst.mmioInstruction() != MMIO_INST_LIMB_VANISHES) {
+        if (!vanishingLimbMmioInstructions.contains(mmioInst.mmioInstruction())) {
 
           if (exoIsSource) {
             mmioInst.limb(readLimb(mmuData.exoBytes(), mmioInst.sourceLimbOffset()));
