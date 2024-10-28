@@ -100,12 +100,12 @@ public class StateManagerSolidityTest {
             .keyPair(senderKeyPair)
             .gasLimit(TestContext.gasLimit);
 
-    if (TestContext.txNonce != null) {
-      tempTx = tempTx.nonce(++TestContext.txNonce);
+    if (this.ctxt.txNonce != null) {
+      tempTx = tempTx.nonce(++this.ctxt.txNonce);
     }
     Transaction tx = tempTx.build();
-    if (TestContext.txNonce == null) {
-      TestContext.txNonce = tx.getNonce();
+    if (this.ctxt.txNonce == null) {
+      this.ctxt.txNonce = tx.getNonce();
     }
     return tx;
   }
@@ -143,12 +143,12 @@ public class StateManagerSolidityTest {
             .keyPair(senderKeyPair)
             .gasLimit(TestContext.gasLimit);
 
-    if (TestContext.txNonce != null) {
-      tempTx = tempTx.nonce(++TestContext.txNonce);
+    if (this.ctxt.txNonce != null) {
+      tempTx = tempTx.nonce(++this.ctxt.txNonce);
     }
     Transaction tx = tempTx.build();
-    if (TestContext.txNonce == null) {
-      TestContext.txNonce = tx.getNonce();
+    if (this.ctxt.txNonce == null) {
+      this.ctxt.txNonce = tx.getNonce();
     }
     return tx;
   }
@@ -186,12 +186,12 @@ public class StateManagerSolidityTest {
             .keyPair(senderKeyPair)
             .gasLimit(TestContext.gasLimit);
 
-    if (TestContext.txNonce != null) {
-      tempTx = tempTx.nonce(++TestContext.txNonce);
+    if (this.ctxt.txNonce != null) {
+      tempTx = tempTx.nonce(++this.ctxt.txNonce);
     }
     Transaction tx = tempTx.build();
-    if (TestContext.txNonce == null) {
-      TestContext.txNonce = tx.getNonce();
+    if (this.ctxt.txNonce == null) {
+      this.ctxt.txNonce = tx.getNonce();
     }
     return tx;
   }
@@ -229,12 +229,12 @@ public class StateManagerSolidityTest {
             .keyPair(senderKeyPair)
             .gasLimit(TestContext.gasLimit);
 
-    if (TestContext.txNonce != null) {
-      tempTx = tempTx.nonce(++TestContext.txNonce);
+    if (this.ctxt.txNonce != null) {
+      tempTx = tempTx.nonce(++this.ctxt.txNonce);
     }
     Transaction tx = tempTx.build();
-    if (TestContext.txNonce == null) {
-      TestContext.txNonce = tx.getNonce();
+    if (this.ctxt.txNonce == null) {
+      this.ctxt.txNonce = tx.getNonce();
     }
     return tx;
   }
@@ -280,12 +280,12 @@ public class StateManagerSolidityTest {
             .keyPair(senderKeyPair)
             .gasLimit(TestContext.gasLimit);
 
-    if (TestContext.txNonce != null) {
-      tempTx = tempTx.nonce(++TestContext.txNonce);
+    if (this.ctxt.txNonce != null) {
+      tempTx = tempTx.nonce(++this.ctxt.txNonce);
     }
     Transaction tx = tempTx.build();
-    if (TestContext.txNonce == null) {
-      TestContext.txNonce = tx.getNonce();
+    if (this.ctxt.txNonce == null) {
+      this.ctxt.txNonce = tx.getNonce();
     }
     return tx;
   }
@@ -293,7 +293,7 @@ public class StateManagerSolidityTest {
 
   @NoArgsConstructor
   class TestContext {
-    static Long txNonce = null;
+    Long txNonce = null;
     static final Long gasLimit = 5000000L;
     static final Wei defaultBalance = Wei.fromEth(3);
     static final int numberOfAccounts = 6;
