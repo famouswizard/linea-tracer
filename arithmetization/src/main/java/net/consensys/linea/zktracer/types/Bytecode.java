@@ -43,7 +43,7 @@ public final class Bytecode {
    */
   public Bytecode(Bytes bytes) {
     this.bytecode = Objects.requireNonNullElse(bytes, Bytes.EMPTY);
-    hash = computeCodeHash();
+    // hash = computeCodeHash();
   }
 
   /**
