@@ -337,7 +337,7 @@ public class Hub implements Module {
     standardModulesToTrace = initStandardModulesToTrace();
     modulesToCountMap = initModulesToCountMap();
 
-    modules = Stream.concat(standardModules.stream(), precompileLimitModules.stream()).toList();
+    modules = standardModules.stream().toList();
     modulesToCount = initModulesToCount(configuredModuleKeysToCount);
   }
 
@@ -409,6 +409,7 @@ public class Hub implements Module {
         exp,
         ext,
         euc,
+        gas,
         logData,
         logInfo,
         mmu, // WARN: must be traced before the MMIO
