@@ -39,10 +39,7 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.FiniteList;
 import net.consensys.linea.zktracer.types.Utils;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Hash;
-import org.hyperledger.besu.datatypes.PendingTransaction;
-import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
@@ -171,6 +168,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     if (!this.tracingExceptions.isEmpty()) {
       throw new TracingExceptions(this.tracingExceptions);
     }
+
   }
 
   @Override

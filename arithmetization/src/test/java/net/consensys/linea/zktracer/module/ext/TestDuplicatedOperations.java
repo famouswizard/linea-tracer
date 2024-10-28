@@ -24,19 +24,20 @@ import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
 public class TestDuplicatedOperations {
+
+  Bytes maxUint256 =
+      Bytes.fromHexString("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  Bytes twoToThe128 = Bytes.fromHexString("0100000000000000000000000000000000");
+
   @Test
   void testDuplicate() {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
-                .push(
-                    Bytes.fromHexString(
-                        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"))
+                .push(maxUint256)
                 .push(0)
                 .push(0)
                 .op(OpCode.MULMOD)
-                .push(
-                    Bytes.fromHexString(
-                        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"))
+                .push(maxUint256)
                 .push(0)
                 .push(0)
                 .op(OpCode.MULMOD)
@@ -45,6 +46,33 @@ public class TestDuplicatedOperations {
             zkTracer -> {
               assertThat(zkTracer.getModulesLineCount().get("EXT")).isEqualTo(8);
             })
+        .run();
+  }
+
+  @Test
+  void testSimpleMulmod() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(maxUint256)
+                .push(twoToThe128)
+                .push(twoToThe128)
+                .op(OpCode.MULMOD)
+                .compile())
+        .run();
+  }
+
+  @Test
+  void testWcpVsExt() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(0)
+                .push(1)
+                .op(OpCode.LT) // false
+                .push(maxUint256)
+                .push(1)
+                .push(maxUint256)
+                .op(OpCode.ADDMOD)
+                .compile())
         .run();
   }
 }
