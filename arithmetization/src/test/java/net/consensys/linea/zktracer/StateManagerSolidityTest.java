@@ -366,6 +366,7 @@ public class StateManagerSolidityTest {
                 String destroyedEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTDESTROYED_EVENT);
                 String createdEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTCREATED_EVENT);
                 String sentETHEventSignature = EventEncoder.encode(StateManagerEvents.PAYETH_EVENT);
+                String recETHEventSignature = EventEncoder.encode(StateManagerEvents.RECETH_EVENT);
                 String logTopic = log.getTopics().getFirst().toHexString();
                 if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
                   TestSnippet_Events.DataNoIndexesEventResponse response =
@@ -382,7 +383,7 @@ public class StateManagerSolidityTest {
                     //assertEquals(response.destination, this.testContext.initialAccounts[0].getAddress().toHexString());
                   }
                 } else {
-                  if (!(logTopic.equals(callEventSignature) || logTopic.equals(writeEventSignature) || logTopic.equals(readEventSignature) || logTopic.equals(destroyedEventSignature) || logTopic.equals(createdEventSignature) || logTopic.equals(sentETHEventSignature))) {
+                  if (!(logTopic.equals(callEventSignature) || logTopic.equals(writeEventSignature) || logTopic.equals(readEventSignature) || logTopic.equals(destroyedEventSignature) || logTopic.equals(createdEventSignature) || logTopic.equals(sentETHEventSignature) || logTopic.equals(recETHEventSignature))) {
                     fail();
                   }
                 }
@@ -459,7 +460,7 @@ public class StateManagerSolidityTest {
     // prepare a multi-block execution of transactions
     MultiBlockExecutionEnvironment.builder()
             // initialize accounts
-            .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))
+            .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.initialAccounts[2], ctxt.frameworkEntryPointAccount))
             // test storage operations for an account prexisting in the state
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, 8L, false, BigInteger.ONE)))
             .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, false, BigInteger.ONE)))
@@ -541,12 +542,12 @@ public class StateManagerSolidityTest {
     // prepare a multi-block execution of transactions
     MultiBlockExecutionEnvironment.builder()
             // initialize accounts
-            .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))
+            .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.initialAccounts[2], ctxt.frameworkEntryPointAccount))
             // test storage operations for an account prexisting in the state
             .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 8L, false, BigInteger.ONE)))
-            //.addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[2], ctxt.addresses[0], 20L, false, BigInteger.ONE)))
-            //.addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 50L, true, BigInteger.ONE)))
-            //.addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 10L, false, BigInteger.ONE)))
+            .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[2], ctxt.addresses[0], 20L, false, BigInteger.ONE)))
+            .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 50L, true, BigInteger.ONE))) // this action is reverted
+            .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 10L, false, BigInteger.ONE)))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();
@@ -562,8 +563,8 @@ public class StateManagerSolidityTest {
     };
     // expected last values for the keys we are testing
     Wei[] expectedLast = {
-            TestContext.defaultBalance.subtract(8L),
-            TestContext.defaultBalance.add(8L),
+            TestContext.defaultBalance.subtract(8L).add(20L).subtract(10L),
+            TestContext.defaultBalance.add(8L).subtract(20L).add(10L),
     };
 
     // prepare the key pairs
@@ -572,7 +573,7 @@ public class StateManagerSolidityTest {
             ctxt.initialAccounts[2].getAddress(),
     };
 
-    for (int i = 1; i < keys.length; i++) {
+    for (int i = 0; i < keys.length; i++) {
       TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>
               accountData = conflationMap.get(keys[i]);
       // asserts for the first and last storage values in conflation
