@@ -297,8 +297,8 @@ public class StateManagerSolidityTest {
     static final Long gasLimit = 5000000L;
     static final Wei defaultBalance = Wei.fromEth(3);
     static final int numberOfAccounts = 6;
-    static final Bytes snippetsCode = SmartContractUtils.getYulContractByteCode("StateManagerSnippets.yul");
-    static final Bytes snippetsCodeForCreate2 = Bytes.fromHexStringLenient("0x61037d61001060003961037d6000f3fe6100076102e1565b63a770741d8114610064576397deb47b81146100715763acf07154811461007d57632d97bf1081146100b45763eba7ff7f81146100e757632b261e94811461012157633ecfd51e811461015b5763ffffffff811461017057600080fd5b61006c610177565b610171565b60005460005260206000f35b6004356024356044356100918183856102c7565b61009b828461019d565b600181036100ac576100ab61034d565b5b505050610171565b6004356024356100c481836102cf565b6100ce81846101da565b600182036100df576100de61034d565b5b505050610171565b6004356024356100f682610253565b600081036101095761010881836102db565b5b6001810361011a5761011961034d565b5b5050610171565b6004356024356044353061013682848661030a565b610141838583610217565b600182036101525761015161034d565b5b50505050610171565b61016361028b565b61016b61037a565b610171565b5b5061037c565b7f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef600055565b7f577269746528616464726573732c75696e743235362c75696e74323536290000604051818152601e8120308585828460606020a4505050505050565b7f5265616428616464726573732c75696e743235362c75696e7432353629202020604051818152601d8120308585828460606020a4505050505050565b7f50617945544828616464726573732c616464726573732c75696e743235362900604051818152601f81208585858360606020a4505050505050565b7f436f6e747261637444657374726f796564286164647265737329000000000000604051818152601a8120838160606020a250505050565b7f52656345544828616464726573732c75696e743235362900000000000000000060405181815260178120303480828460606020a35050505050565b818155505050565b60008154905092915050565b80ff5050565b60007c010000000000000000000000000000000000000000000000000000000060003504905090565b6040517f3ecfd51e0000000000000000000000000000000000000000000000000000000080825260008060208487875af18061034557600080fd5b505050505050565b7f526576657274696e67000000000000000000000000000000000000000000000060206040518281528181fd5b565b");
+    static final Bytes snippetsCode = SmartContractUtils.getYulContractRuntimeByteCode("StateManagerSnippets.yul");
+    static final Bytes snippetsCodeForCreate2 = SmartContractUtils.getYulContractCompiledByteCode("StateManagerSnippets.yul");
     static final org.apache.tuweni.bytes.Bytes32 initCodeHashSnippet = org.hyperledger.besu.crypto.Hash.keccak256(Bytes.wrap(TestContext.snippetsCodeForCreate2));
     @Getter
     ToyAccount frameworkEntryPointAccount;
@@ -317,7 +317,7 @@ public class StateManagerSolidityTest {
                       .address(Address.fromHexString("0x22222"))
                       .balance(defaultBalance)
                       .nonce(5)
-                      .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
+                      .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
                       .build();
       frameworkEntryPointAddress = frameworkEntryPointAccount.getAddress();
       // initialize the .yul snippets account
@@ -345,7 +345,7 @@ public class StateManagerSolidityTest {
                       .address(Address.fromHexString("0x44444"))
                       .balance(defaultBalance)
                       .nonce(8)
-                      .code(SmartContractUtils.getYulContractByteCode("StateManagerSnippets.yul"))
+                      .code(SmartContractUtils.getYulContractRuntimeByteCode("StateManagerSnippets.yul"))
                       .build();
       addresses[2] = initialAccounts[2].getAddress();
     }
@@ -365,6 +365,7 @@ public class StateManagerSolidityTest {
                 String readEventSignature = EventEncoder.encode(StateManagerEvents.READ_EVENT);
                 String destroyedEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTDESTROYED_EVENT);
                 String createdEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTCREATED_EVENT);
+                String sentETHEventSignature = EventEncoder.encode(StateManagerEvents.PAYETH_EVENT);
                 String logTopic = log.getTopics().getFirst().toHexString();
                 if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
                   TestSnippet_Events.DataNoIndexesEventResponse response =
@@ -381,7 +382,7 @@ public class StateManagerSolidityTest {
                     //assertEquals(response.destination, this.testContext.initialAccounts[0].getAddress().toHexString());
                   }
                 } else {
-                  if (!(logTopic.equals(callEventSignature) || logTopic.equals(writeEventSignature) || logTopic.equals(readEventSignature) || logTopic.equals(destroyedEventSignature) || logTopic.equals(createdEventSignature))) {
+                  if (!(logTopic.equals(callEventSignature) || logTopic.equals(writeEventSignature) || logTopic.equals(readEventSignature) || logTopic.equals(destroyedEventSignature) || logTopic.equals(createdEventSignature) || logTopic.equals(sentETHEventSignature))) {
                     fail();
                   }
                 }

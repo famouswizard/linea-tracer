@@ -63,7 +63,7 @@ public class ExampleSolidityTest {
                     .address(Address.fromHexString("0x22222"))
                     .balance(Wei.ONE)
                     .nonce(5)
-                    .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
+                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
                     .build();
 
     ToyAccount snippetAccount =
@@ -71,7 +71,7 @@ public class ExampleSolidityTest {
                     .address(Address.fromHexString("0x11111"))
                     .balance(Wei.ONE)
                     .nonce(6)
-                    .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
+                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestSnippet_Events.class))
                     .build();
 
     Function snippetFunction =
@@ -107,37 +107,35 @@ public class ExampleSolidityTest {
                     .keyPair(keyPair)
                     .build();
 
-
     TransactionProcessingResultValidator resultValidator =
-        (Transaction transaction, TransactionProcessingResult result) -> {
-          // One event from the snippet
-          // One event from the framework entrypoint about contract call
-          assertEquals(result.getLogs().size(), 2);
-          for (Log log : result.getLogs()) {
-            String logTopic = log.getTopics().getFirst().toHexString();
-            if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
-              TestSnippet_Events.DataNoIndexesEventResponse response =
-                  TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(log));
-              assertEquals(response.singleInt, BigInteger.valueOf(123456));
-            } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
-                .equals(logTopic)) {
-              FrameworkEntrypoint.CallExecutedEventResponse response =
-                  FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
-              assertTrue(response.isSuccess);
-              assertEquals(response.destination, snippetAccount.getAddress().toHexString());
-            } else {
-              fail();
-            }
-          }
-        };
+            (Transaction transaction, TransactionProcessingResult result) -> {
+              // One event from the snippet
+              // One event from the framework entrypoint about contract call
+              assertEquals(result.getLogs().size(), 2);
+              for (Log log : result.getLogs()) {
+                String logTopic = log.getTopics().getFirst().toHexString();
+                if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
+                  TestSnippet_Events.DataNoIndexesEventResponse response =
+                          TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(log));
+                  assertEquals(response.singleInt, BigInteger.valueOf(123456));
+                } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
+                        .equals(logTopic)) {
+                  FrameworkEntrypoint.CallExecutedEventResponse response =
+                          FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
+                  assertTrue(response.isSuccess);
+                  assertEquals(response.destination, snippetAccount.getAddress().toHexString());
+                } else {
+                  fail();
+                }
+              }
+            };
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, frameworkEntrypointAccount, snippetAccount))
-        .transaction(tx)
-        .transactionProcessingResultValidator(resultValidator)
-        .build()
-        .run();
-
+            .accounts(List.of(senderAccount, frameworkEntrypointAccount, snippetAccount))
+            .transaction(tx)
+            .transactionProcessingResultValidator(resultValidator)
+            .build()
+            .run();
   }
 
   @Test
@@ -153,7 +151,7 @@ public class ExampleSolidityTest {
                     .address(Address.fromHexString("0x11111"))
                     .balance(Wei.ONE)
                     .nonce(6)
-                    .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
+                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestSnippet_Events.class))
                     .build();
 
     Function function =
@@ -172,22 +170,21 @@ public class ExampleSolidityTest {
                     .keyPair(keyPair)
                     .build();
 
-
     TransactionProcessingResultValidator resultValidator =
-        (Transaction transaction, TransactionProcessingResult result) -> {
-          assertEquals(result.getLogs().size(), 1);
-          TestSnippet_Events.DataNoIndexesEventResponse response =
-              TestSnippet_Events.getDataNoIndexesEventFromLog(
-                  Web3jUtils.fromBesuLog(result.getLogs().getFirst()));
-          assertEquals(response.singleInt, BigInteger.valueOf(123456));
-        };
+            (Transaction transaction, TransactionProcessingResult result) -> {
+              assertEquals(result.getLogs().size(), 1);
+              TestSnippet_Events.DataNoIndexesEventResponse response =
+                      TestSnippet_Events.getDataNoIndexesEventFromLog(
+                              Web3jUtils.fromBesuLog(result.getLogs().getFirst()));
+              assertEquals(response.singleInt, BigInteger.valueOf(123456));
+            };
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, contractAccount))
-        .transaction(tx)
-        .transactionProcessingResultValidator(resultValidator)
-        .build()
-        .run();
+            .accounts(List.of(senderAccount, contractAccount))
+            .transaction(tx)
+            .transactionProcessingResultValidator(resultValidator)
+            .build()
+            .run();
   }
 
   @Test
@@ -204,7 +201,7 @@ public class ExampleSolidityTest {
                     .address(Address.fromHexString("0x11111"))
                     .balance(Wei.ONE)
                     .nonce(6)
-                    .code(SmartContractUtils.getSolidityContractByteCode(TestStorage.class))
+                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestStorage.class))
                     .build();
 
     Function function =
@@ -243,7 +240,7 @@ public class ExampleSolidityTest {
                     .address(Address.fromHexString("0x22222"))
                     .balance(Wei.ONE)
                     .nonce(5)
-                    .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
+                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
                     .build();
 
     ToyAccount yulAccount =
@@ -251,7 +248,7 @@ public class ExampleSolidityTest {
                     .address(Address.fromHexString("0x11111"))
                     .balance(Wei.ONE)
                     .nonce(6)
-                    .code(SmartContractUtils.getYulContractByteCode("DynamicBytecode.yul"))
+                    .code(SmartContractUtils.getYulContractRuntimeByteCode("DynamicBytecode.yul"))
                     .build();
 
     Function yulFunction = new Function("Write", Collections.emptyList(), Collections.emptyList());
@@ -276,23 +273,21 @@ public class ExampleSolidityTest {
     Bytes txPayload =
             Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
 
-
     TransactionProcessingResultValidator resultValidator =
-        (Transaction transaction, TransactionProcessingResult result) -> {
-          assertEquals(result.getLogs().size(), 1);
-          for (Log log : result.getLogs()) {
-            String logTopic = log.getTopics().getFirst().toHexString();
-            if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT).equals(logTopic)) {
-              FrameworkEntrypoint.CallExecutedEventResponse response =
-                  FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
-              assertTrue(response.isSuccess);
-              assertEquals(response.destination, yulAccount.getAddress().toHexString());
-            } else {
-              fail();
-            }
-          }
-        };
-
+            (Transaction transaction, TransactionProcessingResult result) -> {
+              assertEquals(result.getLogs().size(), 1);
+              for (Log log : result.getLogs()) {
+                String logTopic = log.getTopics().getFirst().toHexString();
+                if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT).equals(logTopic)) {
+                  FrameworkEntrypoint.CallExecutedEventResponse response =
+                          FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
+                  assertTrue(response.isSuccess);
+                  assertEquals(response.destination, yulAccount.getAddress().toHexString());
+                } else {
+                  fail();
+                }
+              }
+            };
 
     Transaction tx =
             ToyTransaction.builder()
@@ -304,11 +299,10 @@ public class ExampleSolidityTest {
                     .build();
 
     ToyExecutionEnvironmentV2.builder()
-
-        .accounts(List.of(senderAccount, yulAccount, frameworkEntrypointAccount))
-        .transaction(tx)
-        .transactionProcessingResultValidator(resultValidator)
-        .build()
-        .run();
+            .accounts(List.of(senderAccount, yulAccount, frameworkEntrypointAccount))
+            .transaction(tx)
+            .transactionProcessingResultValidator(resultValidator)
+            .build()
+            .run();
   }
 }
