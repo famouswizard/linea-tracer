@@ -45,7 +45,7 @@ public class TransactionStorageTest {
             tc.frameworkEntryPointAccount,
             // Creates, writes, reads and self-destructs generate 2 logs,
             // Reverted operations only have 1 log
-            List.of(6)
+            List.of(6, 6)
     );
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
@@ -61,7 +61,15 @@ public class TransactionStorageTest {
                                     tc.writeToStorageCall(tc.addresses[0], 3L, 1L, false, BigInteger.ONE),
                                     tc.writeToStorageCall(tc.addresses[0], 3L, 2L, false, BigInteger.ONE),
                                     tc.writeToStorageCall(tc.addresses[0], 3L, 3L, false, BigInteger.ONE),
-                             })))
+                             }),
+                    tc.wrapWrite(tc.externallyOwnedAccounts[0], tc.keyPairs[0], new FrameworkEntrypoint.ContractCall[]
+                            {
+                                    tc.writeToStorageCall(tc.addresses[0], 3L, 4L, false, BigInteger.ONE),
+                                    tc.writeToStorageCall(tc.addresses[0], 3L, 5L, false, BigInteger.ONE),
+                                    tc.writeToStorageCall(tc.addresses[0], 3L, 6L, false, BigInteger.ONE),
+                            })
+
+            ))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();
@@ -69,21 +77,26 @@ public class TransactionStorageTest {
 
     List<TransactionProcessingMetadata> txn = Hub.stateManagerMetadata().getHub().txStack().getTransactions();;
 
-      Map<TransactionProcessingMetadata. AddrStorageKeyPair, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
-              storageMap = txn.get(0).getStorageFirstAndLastMap();
+
 
     // prepare data for asserts
     // expected first values for the keys we are testing
     int noBlocks = 3;
     EWord[][] expectedFirst = {
             {
-                EWord.of(0L),
+              EWord.of(0L),
+            },
+            {
+              EWord.of(3L),
             },
     };
     // expected last values for the keys we are testing
     EWord[][] expectedLast = {
             {
-                EWord.of(3L),
+              EWord.of(3L),
+            },
+            {
+              EWord.of(6L),
             },
     };
     // prepare the key pairs
@@ -94,6 +107,8 @@ public class TransactionStorageTest {
 
     // blocks are numbered starting from 1
     for (int txCounter = 1; txCounter <= txn.size(); txCounter++) {
+      Map<TransactionProcessingMetadata. AddrStorageKeyPair, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
+              storageMap = txn.get(txCounter-1).getStorageFirstAndLastMap();
       for (int i = 0; i < keys.length; i++) {
         TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>
                 storageData = storageMap.get(keys[i]);
