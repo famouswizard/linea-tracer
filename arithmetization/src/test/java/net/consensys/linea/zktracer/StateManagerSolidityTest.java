@@ -558,7 +558,15 @@ public class StateManagerSolidityTest {
             .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000002", TestContext.snippetsCodeForCreate2)))
             .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[3], 49L, false, BigInteger.ONE)))
             .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[3], ctxt.addresses[0], 27L, false, BigInteger.ONE)))
-
+            // deploy another account and self destruct it at the end, redeploy it and change its balance  again
+            .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000003", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[4], 98L, false, BigInteger.ONE)))
+            .addBlock(List.of(selfDestruct(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], ctxt.addresses[2], false, BigInteger.ONE)))
+            .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000003", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[4], 123L, false, BigInteger.ONE)))
+            // deploy a new account and check revert operations on it
+            .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000004", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[2], ctxt.addresses[5], 1L, true, BigInteger.ONE)))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();
@@ -572,13 +580,17 @@ public class StateManagerSolidityTest {
             TestContext.defaultBalance,
             TestContext.defaultBalance,
             Wei.of(0L),
+            Wei.of(0L)
     };
     // expected last values for the keys we are testing
     Wei[] expectedLast = {
             TestContext.defaultBalance.subtract(8L).add(20L).
-                    subtract(10L).subtract(49L).add(27L),
-            TestContext.defaultBalance.add(8L).subtract(20L).add(10L),
-            Wei.of(0L).add(49L).subtract(27L)
+                    subtract(10L).subtract(49L).add(27L)
+                            .subtract(98L).subtract(123L),
+            TestContext.defaultBalance.add(8L).subtract(20L).add(10L)
+                            .add(98L), // 98L obtained from the self destruct of the account at ctxt.addresses[4]
+            Wei.of(0L).add(49L).subtract(27L),
+            Wei.of(123L)
     };
 
     // prepare the key pairs
@@ -586,6 +598,7 @@ public class StateManagerSolidityTest {
             ctxt.initialAccounts[0].getAddress(),
             ctxt.initialAccounts[2].getAddress(),
             ctxt.addresses[3],
+            ctxt.addresses[4]
     };
 
     for (int i = 0; i < keys.length; i++) {
