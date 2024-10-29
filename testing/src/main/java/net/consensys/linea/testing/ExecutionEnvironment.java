@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
@@ -38,6 +40,7 @@ import org.hyperledger.besu.crypto.SignatureAlgorithm;
 import org.hyperledger.besu.crypto.SignatureAlgorithmFactory;
 import org.hyperledger.besu.cryptoservices.KeyPairSecurityModule;
 import org.hyperledger.besu.cryptoservices.NodeKey;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.chain.BadBlockManager;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
@@ -50,6 +53,7 @@ import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpecBuilder;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
+import org.hyperledger.besu.evm.processor.ContractCreationProcessor;
 import org.hyperledger.besu.metrics.noop.NoOpMetricsSystem;
 import org.slf4j.Logger;
 
@@ -133,6 +137,14 @@ public class ExecutionEnvironment {
     return builder
         .privacyParameters(PrivacyParameters.DEFAULT)
         .badBlocksManager(badBlockManager)
+      .contractCreationProcessorBuilder(
+        evm ->
+          new ContractCreationProcessor(
+            evm,
+            true,
+            List.of(),
+            1,
+            Set.of(Address.fromHexString("0x0000000000000000000000000000000000000003"))))
         .build(schedule);
   }
 
