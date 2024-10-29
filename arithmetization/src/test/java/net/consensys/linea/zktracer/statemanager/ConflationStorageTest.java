@@ -99,10 +99,10 @@ public class ConflationStorageTest {
     // prepare data for asserts
     // expected first values for the keys we are testing
     EWord[] expectedFirst = {
-            EWord.of(8L),
-            EWord.of(20L),
-            EWord.of(12L),
-            EWord.of(23L)
+            EWord.of(0L),
+            EWord.of(0),
+            EWord.of(0),
+            EWord.of(0)
     };
     // expected last values for the keys we are testing
     EWord[] expectedLast = {
@@ -123,7 +123,7 @@ public class ConflationStorageTest {
       TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>
               storageData = conflationStorage.get(keys[i]);
       // asserts for the first and last storage values in conflation
-      assertEquals(storageData.getFirst().getValueNext(), expectedFirst[i]);
+      assertEquals(storageData.getFirst().getValueCurrent(), expectedFirst[i]);
       assertEquals(storageData.getLast().getValueNext(), expectedLast[i]);
     }
     System.out.println("Done");
