@@ -1,13 +1,9 @@
-package net.consensys.linea.zktracer;
+package net.consensys.linea.zktracer.statemanager;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
-import net.consensys.linea.testing.generated.StateManagerEvents;
-import net.consensys.linea.testing.generated.TestSnippet_Events;
 import net.consensys.linea.zktracer.types.AddressUtils;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -16,9 +12,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
-import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
-import org.hyperledger.besu.evm.log.Log;
-import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
@@ -37,57 +30,56 @@ public class TestContext {
     Long txNonce = null;
     static final Long gasLimit = 5000000L;
     static final Wei defaultBalance = Wei.fromEth(3);
-    static final int numberOfAccounts = 6;
+    static final int numberOfAccounts = 10;
+    static final int numberOfNewAccounts = 10;
+    static final int numberOfEOA = 1;
     static final Bytes snippetsCode = SmartContractUtils.getYulContractRuntimeByteCode("StateManagerSnippets.yul");
     static final Bytes snippetsCodeForCreate2 = SmartContractUtils.getYulContractCompiledByteCode("StateManagerSnippets.yul");
     @Getter
     ToyAccount frameworkEntryPointAccount;
     Address frameworkEntryPointAddress;
     ToyAccount[] initialAccounts;
+    ToyAccount[] externallyOwnedAccounts;
+    KeyPair[] keyPairs;
     Address[] addresses;
-    KeyPair[] initialKeyPairs;
+    Address[] newAddresses;
     public void initializeTestContext() {
         // initialize vectors
         initialAccounts = new ToyAccount[numberOfAccounts];
-        initialKeyPairs = new KeyPair[numberOfAccounts];
         addresses = new Address[numberOfAccounts];
+        externallyOwnedAccounts = new ToyAccount[numberOfEOA];
+        keyPairs = new KeyPair[numberOfEOA];
+        newAddresses = new Address[numberOfNewAccounts];
+        // generate externally owned accounts
+        for (int i = 0; i < numberOfEOA; i++) {
+            KeyPair keyPair = new SECP256K1().generateKeyPair();
+            Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+            externallyOwnedAccounts[i] =
+                    ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+            keyPairs[i] = keyPair;
+        }
         // initialize the testing framework entry point account
         frameworkEntryPointAccount =
                 ToyAccount.builder()
-                        .address(Address.fromHexString("0x22222"))
+                        .address(Address.fromHexString("0x123456"))
                         .balance(defaultBalance)
                         .nonce(5)
                         .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
                         .build();
         frameworkEntryPointAddress = frameworkEntryPointAccount.getAddress();
+        // add to arrays
         // initialize the .yul snippets account
         // load the .yul bytecode
-        initialAccounts[0] =
-                ToyAccount.builder()
-                        .address(Address.fromHexString("0x11111"))
-                        .balance(defaultBalance)
-                        .nonce(6)
-                        .code(TestContext.snippetsCode)
-                        .build();
-        addresses[0] = initialAccounts[0].getAddress();
-        // generate extra accounts
-        KeyPair keyPair = new SECP256K1().generateKeyPair();
-        Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
-        ToyAccount senderAccount =
-                ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
-        // add to arrays
-        initialAccounts[1] = senderAccount;
-        initialKeyPairs[1] = keyPair;
-        addresses[1] = initialAccounts[1].getAddress();
-        // an account with revert
-        initialAccounts[2] =
-                ToyAccount.builder()
-                        .address(Address.fromHexString("0x44444"))
-                        .balance(defaultBalance)
-                        .nonce(8)
-                        .code(SmartContractUtils.getYulContractRuntimeByteCode("StateManagerSnippets.yul"))
-                        .build();
-        addresses[2] = initialAccounts[2].getAddress();
+        for (int i = 0; i < numberOfAccounts; i++) {
+
+            initialAccounts[i] =
+                    ToyAccount.builder()
+                            .address(Address.fromHexString("0x" + i + i + i + i + i))
+                            .balance(defaultBalance)
+                            .nonce(6)
+                            .code(TestContext.snippetsCode)
+                            .build();
+            addresses[i] = initialAccounts[i].getAddress();        }
     }
 
     // destination must be our .yul smart contract
