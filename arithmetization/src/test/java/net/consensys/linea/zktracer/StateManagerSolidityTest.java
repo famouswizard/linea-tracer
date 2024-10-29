@@ -300,7 +300,6 @@ public class StateManagerSolidityTest {
     static final int numberOfAccounts = 6;
     static final Bytes snippetsCode = SmartContractUtils.getYulContractRuntimeByteCode("StateManagerSnippets.yul");
     static final Bytes snippetsCodeForCreate2 = SmartContractUtils.getYulContractCompiledByteCode("StateManagerSnippets.yul");
-    static final org.apache.tuweni.bytes.Bytes32 initCodeHashSnippet = org.hyperledger.besu.crypto.Hash.keccak256(Bytes.wrap(TestContext.snippetsCodeForCreate2));
     @Getter
     ToyAccount frameworkEntryPointAccount;
     Address frameworkEntryPointAddress;
@@ -352,46 +351,7 @@ public class StateManagerSolidityTest {
     }
   }
 
-  TransactionProcessingResultValidator getValidator() {
-    TransactionProcessingResultValidator resultValidator =
-            (Transaction transaction, TransactionProcessingResult result) -> {
-              TransactionProcessingResultValidator.DEFAULT_VALIDATOR.accept(transaction, result);
-              // One event from the snippet
-              // One event from the framework entrypoint about contract call
-              System.out.println("Number of logs: "+result.getLogs().size());
-              //assertEquals(result.getLogs().size(), 2);
-              for (Log log : result.getLogs()) {
-                String callEventSignature = EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT);
-                String writeEventSignature = EventEncoder.encode(StateManagerEvents.WRITE_EVENT);
-                String readEventSignature = EventEncoder.encode(StateManagerEvents.READ_EVENT);
-                String destroyedEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTDESTROYED_EVENT);
-                String createdEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTCREATED_EVENT);
-                String sentETHEventSignature = EventEncoder.encode(StateManagerEvents.PAYETH_EVENT);
-                String recETHEventSignature = EventEncoder.encode(StateManagerEvents.RECETH_EVENT);
-                String logTopic = log.getTopics().getFirst().toHexString();
-                if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
-                  TestSnippet_Events.DataNoIndexesEventResponse response =
-                          TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(log));
-                  //assertEquals(response.singleInt, BigInteger.valueOf(123456));
-                } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
-                        .equals(logTopic)) {
-                  FrameworkEntrypoint.CallExecutedEventResponse response =
-                          FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
-                  //assertTrue(response.isSuccess);
-                  if (logTopic.equals(createdEventSignature)) {
-                    assertEquals(response.destination, this.ctxt.frameworkEntryPointAccount.getAddress().toHexString());
-                  } else {
-                    //assertEquals(response.destination, this.testContext.initialAccounts[0].getAddress().toHexString());
-                  }
-                } else {
-                  if (!(logTopic.equals(callEventSignature) || logTopic.equals(writeEventSignature) || logTopic.equals(readEventSignature) || logTopic.equals(destroyedEventSignature) || logTopic.equals(createdEventSignature) || logTopic.equals(sentETHEventSignature) || logTopic.equals(recETHEventSignature))) {
-                    fail();
-                  }
-                }
-              }
-            };
-    return resultValidator;
-  }
+
 
   Address getCreate2AddressForSnippet(String salt) {
     org.apache.tuweni.bytes.Bytes32 initCodeHash = org.hyperledger.besu.crypto.Hash.keccak256(Bytes.wrap(TestContext.snippetsCodeForCreate2));
@@ -406,13 +366,20 @@ public class StateManagerSolidityTest {
     // initialize the test context
     this.ctxt = new TestContext();
     this.ctxt.initializeTestContext();
-    TransactionProcessingResultValidator resultValidator = getValidator();
+    TransactionProcessingResultValidator resultValidator = new StateManagerTestValidator(
+            ctxt.frameworkEntryPointAccount,
+            // Creates and self-destructs generate 2 logs,
+            // Transfers generate 3 logs, the 1s are for reverted operations
+            List.of(2, 2, 3, 2, 2)
+    );
 
     MultiBlockExecutionEnvironment.builder()
-            .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))
+            .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.initialAccounts[2], ctxt.frameworkEntryPointAccount))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, 1L, false, BigInteger.ZERO)))
             .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, false, BigInteger.ZERO)))
-            .addBlock(List.of(selfDestruct(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.frameworkEntryPointAddress, false, BigInteger.ZERO)))
+            .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 8L, false, BigInteger.ONE)))
+             // test operations above, before self-destructing a snippet in the next line
+            .addBlock(List.of(selfDestruct(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.frameworkEntryPointAddress, false, BigInteger.ONE))) // use BigInteger.ONE, otherwise the framework entry point gets destroyed
             .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000002", TestContext.snippetsCodeForCreate2)))
             .transactionProcessingResultValidator(resultValidator)
             .build()
@@ -427,7 +394,10 @@ public class StateManagerSolidityTest {
 // initialize the test context
     this.ctxt = new TestContext();
     this.ctxt.initializeTestContext();
-    TransactionProcessingResultValidator resultValidator = getValidator();
+    TransactionProcessingResultValidator resultValidator = new StateManagerTestValidator(
+            ctxt.frameworkEntryPointAccount,
+            List.of(2)
+    );
     MultiBlockExecutionEnvironment.builder()
             .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))
             .addBlock(List.of(
@@ -450,7 +420,15 @@ public class StateManagerSolidityTest {
     this.ctxt = new TestContext();
     this.ctxt.initializeTestContext();
     // prepare the transaction validator
-    TransactionProcessingResultValidator resultValidator = getValidator();
+    TransactionProcessingResultValidator resultValidator = new StateManagerTestValidator(
+            ctxt.frameworkEntryPointAccount,
+            // Creates, writes, reads and self-destructs generate 2 logs,
+            // Reverted operations only have 1 log
+            List.of(2, 2, 2, 2, 2,
+                    2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 1, 1)
+    );
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
     // compute the addresses for several accounts that will be deployed later
@@ -536,7 +514,15 @@ public class StateManagerSolidityTest {
     this.ctxt = new TestContext();
     this.ctxt.initializeTestContext();
     // prepare the transaction validator
-    TransactionProcessingResultValidator resultValidator = getValidator();
+    TransactionProcessingResultValidator resultValidator = new StateManagerTestValidator(
+            ctxt.frameworkEntryPointAccount,
+            // Creates and self-destructs generate 2 logs,
+            // Transfers generate 3 logs, the 1s are for reverted operations
+            List.of(3, 3, 1, 3,
+                    2, 3, 3,
+                    2, 3, 2, 2, 3,
+                    2, 1)
+    );
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
 
@@ -602,6 +588,7 @@ public class StateManagerSolidityTest {
     };
 
     for (int i = 0; i < keys.length; i++) {
+      System.out.println("Index is "+i);
       TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>
               accountData = conflationMap.get(keys[i]);
       // asserts for the first and last storage values in conflation
