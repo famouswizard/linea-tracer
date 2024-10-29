@@ -82,6 +82,54 @@ public class TestContext {
             addresses[i] = initialAccounts[i].getAddress();        }
     }
 
+
+    // destination must be our .yul smart contract
+    FrameworkEntrypoint.ContractCall writeToStorageCall(Address destination, Long key, Long value, boolean revertFlag, BigInteger callType) {
+        Function yulFunction = new Function("writeToStorage",
+                Arrays.asList(new Uint256(BigInteger.valueOf(key)), new Uint256(BigInteger.valueOf(value)), new org.web3j.abi.datatypes.Bool(revertFlag)),
+                Collections.emptyList());
+
+        var encoding = FunctionEncoder.encode(yulFunction);
+        FrameworkEntrypoint.ContractCall snippetContractCall =
+                new FrameworkEntrypoint.ContractCall(
+                        /*Address*/ destination.toHexString(),
+                        /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
+                        /*gasLimit*/ BigInteger.ZERO,
+                        /*value*/ BigInteger.ZERO,
+                        /*callType*/ callType);
+        return snippetContractCall;
+    }
+
+    // destination must be our .yul smart contract
+    Transaction wrapWrite(ToyAccount sender, KeyPair senderKeyPair, FrameworkEntrypoint.ContractCall[] contractCalls) {
+        Function frameworkEntryPointFunction =
+                new Function(
+                        FrameworkEntrypoint.FUNC_EXECUTECALLS,
+                        List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
+                        Collections.emptyList());
+        Bytes txPayload =
+                Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+
+
+        ToyTransaction.ToyTransactionBuilder tempTx = ToyTransaction.builder()
+                .sender(sender)
+                .to(this.frameworkEntryPointAccount)
+                .payload(txPayload)
+                .keyPair(senderKeyPair)
+                .gasLimit(TestContext.gasLimit);
+
+        if (this.txNonce != null) {
+            tempTx = tempTx.nonce(++this.txNonce);
+        }
+        Transaction tx = tempTx.build();
+        if (this.txNonce == null) {
+            this.txNonce = tx.getNonce();
+        }
+        return tx;
+    }
+
+
+
     // destination must be our .yul smart contract
     Transaction writeToStorage(ToyAccount sender, KeyPair senderKeyPair, Address destination, Long key, Long value, boolean revertFlag, BigInteger callType) {
         Function yulFunction = new Function("writeToStorage",

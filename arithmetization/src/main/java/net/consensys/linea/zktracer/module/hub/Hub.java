@@ -454,6 +454,7 @@ public class Hub implements Module {
                     blockdata /* WARN: must be called AFTER txnData */),
                 precompileLimitModules().stream())
             .toList();
+    stateManagerMetadata.setHub(this);
   }
 
   @Override

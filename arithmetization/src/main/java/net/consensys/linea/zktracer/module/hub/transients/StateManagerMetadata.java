@@ -18,14 +18,18 @@ package net.consensys.linea.zktracer.module.hub.transients;
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.*;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 
 public class StateManagerMetadata {
+  @Setter @Getter
+  Hub hub;
+
   @EqualsAndHashCode
   public static class AddrBlockPair {
     @Getter private Address address;
