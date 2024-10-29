@@ -35,6 +35,7 @@ import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
@@ -539,15 +540,25 @@ public class StateManagerSolidityTest {
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
 
+    // compute the addresses for several accounts that will be deployed later
+    ctxt.addresses[3] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000002");
+    ctxt.addresses[4] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000003");
+    ctxt.addresses[5] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000004");
+
     // prepare a multi-block execution of transactions
     MultiBlockExecutionEnvironment.builder()
             // initialize accounts
             .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.initialAccounts[2], ctxt.frameworkEntryPointAccount))
-            // test storage operations for an account prexisting in the state
+            // test account operations for an account prexisting in the state
             .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 8L, false, BigInteger.ONE)))
             .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[2], ctxt.addresses[0], 20L, false, BigInteger.ONE)))
             .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 50L, true, BigInteger.ONE))) // this action is reverted
             .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[2], 10L, false, BigInteger.ONE)))
+            // deploy another account ctxt.addresses[3] and perform account operations on it
+            .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000002", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.addresses[3], 49L, false, BigInteger.ONE)))
+            .addBlock(List.of(transferTo(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[3], ctxt.addresses[0], 27L, false, BigInteger.ONE)))
+
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();
@@ -560,17 +571,21 @@ public class StateManagerSolidityTest {
     Wei[] expectedFirst = {
             TestContext.defaultBalance,
             TestContext.defaultBalance,
+            Wei.of(0L),
     };
     // expected last values for the keys we are testing
     Wei[] expectedLast = {
-            TestContext.defaultBalance.subtract(8L).add(20L).subtract(10L),
+            TestContext.defaultBalance.subtract(8L).add(20L).
+                    subtract(10L).subtract(49L).add(27L),
             TestContext.defaultBalance.add(8L).subtract(20L).add(10L),
+            Wei.of(0L).add(49L).subtract(27L)
     };
 
     // prepare the key pairs
     Address[] keys = {
             ctxt.initialAccounts[0].getAddress(),
             ctxt.initialAccounts[2].getAddress(),
+            ctxt.addresses[3],
     };
 
     for (int i = 0; i < keys.length; i++) {
