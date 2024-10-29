@@ -479,7 +479,7 @@ public class StateManagerSolidityTest {
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, 12L, false, BigInteger.ONE)))
             .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, false, BigInteger.ONE)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, 13L, false, BigInteger.ONE)))
-            .addBlock(List.of(selfDestruct(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, ctxt.addresses[4], false, BigInteger.ONE)))
+            .addBlock(List.of(selfDestruct(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], ctxt.frameworkEntryPointAddress, false, BigInteger.ONE)))
             .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000003", TestContext.snippetsCodeForCreate2)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, 99L, false, BigInteger.ONE)))
             // deploy a new account and check revert operations on it
