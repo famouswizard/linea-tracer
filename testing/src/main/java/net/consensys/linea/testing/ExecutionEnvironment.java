@@ -137,14 +137,14 @@ public class ExecutionEnvironment {
     return builder
         .privacyParameters(PrivacyParameters.DEFAULT)
         .badBlocksManager(badBlockManager)
-      .contractCreationProcessorBuilder(
+            .contractCreationProcessorBuilder(
         evm ->
           new ContractCreationProcessor(
             evm,
             true,
             List.of(),
             1,
-            Set.of(Address.fromHexString("0x0000000000000000000000000000000000000003"))))
+            Set.of()))
         .build(schedule);
   }
 
