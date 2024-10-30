@@ -72,7 +72,7 @@ public class Create2 extends MmuCall implements RomLexDefer {
 
   @Override
   public Optional<Bytes> exoBytes() {
-    return Optional.of(hub.romLex().getCodeByMetadata(contract));
+    return exoIsRom ? Optional.of(hub.romLex().getCodeByMetadata(contract)) : Optional.empty();
   }
 
   @Override
