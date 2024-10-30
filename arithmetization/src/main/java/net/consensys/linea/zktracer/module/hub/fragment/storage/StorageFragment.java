@@ -20,13 +20,17 @@ import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.transients.StateManagerMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
@@ -70,6 +74,22 @@ public final class StorageFragment implements TraceFragment {
     // tracing
     domSubStampsSubFragment.trace(trace);
 
+    Map<TransactionProcessingMetadata.AddrStorageKeyPair, TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
+        storageFirstAndLastMap = transactionProcessingMetadata.getStorageFirstAndLastMap();
+    TransactionProcessingMetadata.AddrStorageKeyPair currentAddressKeyPair = new TransactionProcessingMetadata.AddrStorageKeyPair(storageSlotIdentifier.getAddress(), storageSlotIdentifier.getStorageKey());
+
+    StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
+    Map<StateManagerMetadata.AddrStorageKeyBlockNumTuple,
+            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
+            storageFirstLastBlockMap = stateManagerMetadata.getStorageFirstLastBlockMap();
+    StateManagerMetadata.AddrStorageKeyBlockNumTuple storageKeyBlockNumTuple = new StateManagerMetadata.AddrStorageKeyBlockNumTuple(currentAddressKeyPair, this.blockNumber);
+
+    TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> storageFirstLastConflationPair = stateManagerMetadata.getStorageFirstLastConflationMap().get(currentAddressKeyPair);
+
+    StateManagerMetadata.AddrBlockPair addressBlockPair = new StateManagerMetadata.AddrBlockPair(storageSlotIdentifier.getAddress(), transactionProcessingMetadata.getRelativeBlockNumber());
+    long minDeploymentNumberInBlock = stateManagerMetadata.getMinDeplNoBlock().get(addressBlockPair);
+    long maxDeploymentNumberInBlock = stateManagerMetadata.getMaxDeplNoBlock().get(addressBlockPair);
+
     return trace
         .peekAtStorage(true)
         .pStorageAddressHi(highPart(storageSlotIdentifier.getAddress()))
@@ -92,6 +112,18 @@ public final class StorageFragment implements TraceFragment {
         .pStorageValueNextIsZero(valueNext.isZero())
         .pStorageValueNextIsOrig(valueNext.equals(valueOriginal))
         .pStorageUnconstrainedFirst(isFirstOccurrence)
-        .pStorageUnconstrainedFinal(isFinalOccurrence);
+        .pStorageUnconstrainedFinal(isFinalOccurrence)
+        .pStorageFirstInTxn(this == storageFirstAndLastMap.get(currentAddressKeyPair).getFirst())
+        .pStorageAgainInTxn(this != storageFirstAndLastMap.get(currentAddressKeyPair).getFirst())
+        .pStorageFinalInTxn(this == storageFirstAndLastMap.get(currentAddressKeyPair).getLast())
+        .pStorageFirstInBlk(this == storageFirstLastBlockMap.get(storageKeyBlockNumTuple).getFirst())
+        .pStorageAgainInBlk(this != storageFirstLastBlockMap.get(storageKeyBlockNumTuple).getFirst())
+        .pStorageFinalInBlk(this == storageFirstLastBlockMap.get(storageKeyBlockNumTuple).getLast())
+        .pStorageFirstInCnf(this == storageFirstLastConflationPair.getFirst())
+        .pStorageAgainInCnf(this != storageFirstLastConflationPair.getFirst())
+        .pStorageFinalInCnf(this == storageFirstLastConflationPair.getLast())
+        .pStorageDeploymentNumberFirstInBlock(minDeploymentNumberInBlock)
+        .pStorageDeploymentNumberFinalInBlock(maxDeploymentNumberInBlock)
+        ;
   }
 }
