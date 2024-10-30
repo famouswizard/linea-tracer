@@ -96,14 +96,14 @@ public class SmartContractUtils {
     try {
       JsonNode jsonRoot = objectMapper.readTree(contractResourceURL);
       String byteCode =
-              jsonRoot
-                      .get("contracts")
-                      .get(yulFileName)
-                      .get(yulFileNameWithoutSuffix)
-                      .get("evm")
-                      .get("deployedBytecode")
-                      .get("object")
-                      .asText();
+          jsonRoot
+              .get("contracts")
+              .get(yulFileName)
+              .get(yulFileNameWithoutSuffix)
+              .get("evm")
+              .get("deployedBytecode")
+              .get("object")
+              .asText();
       return Bytes.fromHexStringLenient(byteCode);
     } catch (Exception e) {
       throw new RuntimeException("Could not find contract bytecode", e);

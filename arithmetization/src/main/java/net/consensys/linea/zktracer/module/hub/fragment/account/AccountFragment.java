@@ -138,15 +138,20 @@ public final class AccountFragment
       rlpAddrSubFragment.trace(trace);
     }
 
-    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> transactionAccountMap = transactionProcessingMetadata.getAccountFirstAndLastMap();
+    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+        transactionAccountMap = transactionProcessingMetadata.getAccountFirstAndLastMap();
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
 
-    Map<StateManagerMetadata.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> accountFirstLastBlockMap =
-    stateManagerMetadata.getAccountFirstLastBlockMap();
-    StateManagerMetadata.AddrBlockPair current = new StateManagerMetadata.AddrBlockPair(oldState.address(), transactionProcessingMetadata.getRelativeBlockNumber());
+    Map<
+            StateManagerMetadata.AddrBlockPair,
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+        accountFirstLastBlockMap = stateManagerMetadata.getAccountFirstLastBlockMap();
+    StateManagerMetadata.AddrBlockPair current =
+        new StateManagerMetadata.AddrBlockPair(
+            oldState.address(), transactionProcessingMetadata.getRelativeBlockNumber());
 
-    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> accountFirstLastConflationMap =
-    stateManagerMetadata.getAccountFirstLastConflationMap();
+    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+        accountFirstLastConflationMap = stateManagerMetadata.getAccountFirstLastConflationMap();
 
     long minDeploymentNumberInBlock = stateManagerMetadata.getMinDeplNoBlock().get(current);
     long maxDeploymentNumberInBlock = stateManagerMetadata.getMaxDeplNoBlock().get(current);
@@ -196,12 +201,13 @@ public final class AccountFragment
         .pAccountFirstInBlk(this == accountFirstLastBlockMap.get(current).getFirst())
         .pAccountAgainInBlk(this != accountFirstLastBlockMap.get(current).getFirst())
         .pAccountFinalInBlk(this == accountFirstLastBlockMap.get(current).getLast())
-        .pAccountFirstInCnf(this == accountFirstLastConflationMap.get(oldState.address()).getFirst())
-        .pAccountAgainInCnf(this != accountFirstLastConflationMap.get(oldState.address()).getFirst())
+        .pAccountFirstInCnf(
+            this == accountFirstLastConflationMap.get(oldState.address()).getFirst())
+        .pAccountAgainInCnf(
+            this != accountFirstLastConflationMap.get(oldState.address()).getFirst())
         .pAccountFinalInCnf(this == accountFirstLastConflationMap.get(oldState.address()).getLast())
         .pAccountDeploymentNumberFirstInBlock(minDeploymentNumberInBlock)
-        .pAccountDeploymentNumberFinalInBlock(maxDeploymentNumberInBlock)
-        ;
+        .pAccountDeploymentNumberFinalInBlock(maxDeploymentNumberInBlock);
   }
 
   @Override

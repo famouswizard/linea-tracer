@@ -1184,7 +1184,7 @@ public class Hub implements Module {
     Map<
             StateManagerMetadata.AddrBlockPair,
             TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-            blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
+        blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
 
     List<TransactionProcessingMetadata> txn = txStack.getTransactions();
 
@@ -1192,34 +1192,34 @@ public class Hub implements Module {
       if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
         int blockNumber = transients.block().blockNumber();
         Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-                localMapAccount = metadata.getAccountFirstAndLastMap();
+            localMapAccount = metadata.getAccountFirstAndLastMap();
 
         Map<
                 TransactionProcessingMetadata.AddrStorageKeyPair,
                 TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-                localMapStorage = metadata.getStorageFirstAndLastMap();
+            localMapStorage = metadata.getStorageFirstAndLastMap();
 
         // Update the block map for the account
         for (Address addr : localMapAccount.keySet()) {
           StateManagerMetadata.AddrBlockPair pairAddrBlock =
-                  new StateManagerMetadata.AddrBlockPair(addr, blockNumber);
+              new StateManagerMetadata.AddrBlockPair(addr, blockNumber);
 
           // localValue exists for sure because addr belongs to the keySet of the local map
           TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> localValueAccount =
-                  localMapAccount.get(addr);
+              localMapAccount.get(addr);
           if (!blockMapAccount.containsKey(pairAddrBlock)) {
             // the pair is not present in the map
             blockMapAccount.put(pairAddrBlock, localValueAccount);
           } else {
             TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
-                    blockMapAccount.get(pairAddrBlock);
+                blockMapAccount.get(pairAddrBlock);
             // update the first part of the blockValue
             // Todo: Refactor and remove code duplication
             if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                    localValueAccount.getFirstDom(),
-                    localValueAccount.getFirstSub(),
-                    blockValue.getFirstDom(),
-                    blockValue.getFirstSub())) {
+                localValueAccount.getFirstDom(),
+                localValueAccount.getFirstSub(),
+                blockValue.getFirstDom(),
+                blockValue.getFirstSub())) {
               // chronologically checks that localValue.First is before blockValue.First
               // localValue comes chronologically before, and should be the first value of the map.
               blockValue.setFirst(localValueAccount.getFirst());
@@ -1228,10 +1228,10 @@ public class Hub implements Module {
 
               // update the last part of the blockValue
               if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                      blockValue.getLastDom(),
-                      blockValue.getLastSub(),
-                      localValueAccount.getLastDom(),
-                      localValueAccount.getLastSub())) {
+                  blockValue.getLastDom(),
+                  blockValue.getLastSub(),
+                  localValueAccount.getLastDom(),
+                  localValueAccount.getLastSub())) {
                 // chronologically checks that blockValue.Last is before localValue.Last
                 // localValue comes chronologically after, and should be the final value of the map.
                 blockValue.setLast(localValueAccount.getLast());
@@ -1241,7 +1241,6 @@ public class Hub implements Module {
               blockMapAccount.put(pairAddrBlock, blockValue);
             }
           }
-
         }
       }
     }
@@ -1251,7 +1250,7 @@ public class Hub implements Module {
     Map<
             StateManagerMetadata.AddrStorageKeyBlockNumTuple,
             TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-            blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
+        blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
 
     List<TransactionProcessingMetadata> txn = txStack.getTransactions();
 
@@ -1261,30 +1260,30 @@ public class Hub implements Module {
         Map<
                 TransactionProcessingMetadata.AddrStorageKeyPair,
                 TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-                localMapStorage = metadata.getStorageFirstAndLastMap();
+            localMapStorage = metadata.getStorageFirstAndLastMap();
         // Update the block map for storage
         for (TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair :
-                localMapStorage.keySet()) {
+            localMapStorage.keySet()) {
 
           StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
-                  new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, blockNumber);
+              new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, blockNumber);
 
           // localValue exists for sure because addr belongs to the keySet of the local map
           TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> localValueStorage =
-                  localMapStorage.get(addrStorageKeyPair);
+              localMapStorage.get(addrStorageKeyPair);
 
           if (!blockMapStorage.containsKey(addrStorageBlockTuple)) {
             // the pair is not present in the map
             blockMapStorage.put(addrStorageBlockTuple, localValueStorage);
           } else {
             TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValueStorage =
-                    blockMapStorage.get(addrStorageBlockTuple);
+                blockMapStorage.get(addrStorageBlockTuple);
             // update the first part of the blockValue
             if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                    localValueStorage.getFirstDom(),
-                    localValueStorage.getFirstSub(),
-                    blockValueStorage.getFirstDom(),
-                    blockValueStorage.getFirstSub())) {
+                localValueStorage.getFirstDom(),
+                localValueStorage.getFirstSub(),
+                blockValueStorage.getFirstDom(),
+                blockValueStorage.getFirstSub())) {
               // chronologically checks that localValue.First is before blockValue.First
               // localValue comes chronologically before, and should be the first value of the map.
               blockValueStorage.setFirst(localValueStorage.getFirst());
@@ -1293,10 +1292,10 @@ public class Hub implements Module {
 
               // update the last part of the blockValue
               if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                      blockValueStorage.getLastDom(),
-                      blockValueStorage.getLastSub(),
-                      localValueStorage.getLastDom(),
-                      localValueStorage.getLastSub())) {
+                  blockValueStorage.getLastDom(),
+                  blockValueStorage.getLastSub(),
+                  localValueStorage.getLastDom(),
+                  localValueStorage.getLastSub())) {
                 // chronologically checks that blockValue.Last is before localValue.Last
                 // localValue comes chronologically after, and should be the final value of the map.
                 blockValueStorage.setLast(localValueStorage.getLast());
@@ -1504,22 +1503,22 @@ public class Hub implements Module {
       Map<
               TransactionProcessingMetadata.AddrStorageKeyPair,
               TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-              txnMapStorage = metadata.getStorageFirstAndLastMap();
+          txnMapStorage = metadata.getStorageFirstAndLastMap();
       for (TransactionProcessingMetadata.AddrStorageKeyPair addrKeyPair : txnMapStorage.keySet()) {
         var txnValue = txnMapStorage.get(addrKeyPair);
         System.out.println(
-                "Storage: txn level map: addr: "
-                        + addrKeyPair.getAddress()
-                        + ": storage key: "
-                        + addrKeyPair.getStorageKey()
-                        + ": first dom: "
-                        + txnValue.getFirstDom()
-                        + ", first sub: "
-                        + txnValue.getFirstSub()
-                        + ": last dom: "
-                        + txnValue.getLastDom()
-                        + ", last sub: "
-                        + txnValue.getLastSub());
+            "Storage: txn level map: addr: "
+                + addrKeyPair.getAddress()
+                + ": storage key: "
+                + addrKeyPair.getStorageKey()
+                + ": first dom: "
+                + txnValue.getFirstDom()
+                + ", first sub: "
+                + txnValue.getFirstSub()
+                + ": last dom: "
+                + txnValue.getLastDom()
+                + ", last sub: "
+                + txnValue.getLastSub());
       }
     }
 
@@ -1528,20 +1527,20 @@ public class Hub implements Module {
     for (var addrKeyBlockTuple : blockMapStorage.keySet()) {
       var blockValue = blockMapStorage.get(addrKeyBlockTuple);
       System.out.println(
-              "Storage: block level map: addr: "
-                      + addrKeyBlockTuple.getAddrStorageKeyPair().getAddress()
-                      + ": key: "
-                      + addrKeyBlockTuple.getAddrStorageKeyPair().getStorageKey()
-                      + ": block: "
-                      + addrKeyBlockTuple.getBlockNumber()
-                      + ": first dom: "
-                      + blockValue.getFirstDom()
-                      + ", first sub: "
-                      + blockValue.getFirstSub()
-                      + ": last dom: "
-                      + blockValue.getLastDom()
-                      + ", last sub: "
-                      + blockValue.getLastSub());
+          "Storage: block level map: addr: "
+              + addrKeyBlockTuple.getAddrStorageKeyPair().getAddress()
+              + ": key: "
+              + addrKeyBlockTuple.getAddrStorageKeyPair().getStorageKey()
+              + ": block: "
+              + addrKeyBlockTuple.getBlockNumber()
+              + ": first dom: "
+              + blockValue.getFirstDom()
+              + ", first sub: "
+              + blockValue.getFirstSub()
+              + ": last dom: "
+              + blockValue.getLastDom()
+              + ", last sub: "
+              + blockValue.getLastSub());
     }
 
     // Print conflationMaps
@@ -1549,20 +1548,21 @@ public class Hub implements Module {
     for (var addrKeyPair : conflationMapStorage.keySet()) {
       var conflationValue = conflationMapStorage.get(addrKeyPair);
       System.out.println(
-              "Storage: conflation level map: addr: "
-                      + addrKeyPair.getAddress()
-                      + ": storage key: "
-                      + addrKeyPair.getStorageKey()
-                      + ": first dom: "
-                      + conflationValue.getFirstDom()
-                      + ", first sub: "
-                      + conflationValue.getFirstSub()
-                      + ": last dom: "
-                      + conflationValue.getLastDom()
-                      + ", last sub: "
-                      + conflationValue.getLastSub());
+          "Storage: conflation level map: addr: "
+              + addrKeyPair.getAddress()
+              + ": storage key: "
+              + addrKeyPair.getStorageKey()
+              + ": first dom: "
+              + conflationValue.getFirstDom()
+              + ", first sub: "
+              + conflationValue.getFirstSub()
+              + ": last dom: "
+              + conflationValue.getLastDom()
+              + ", last sub: "
+              + conflationValue.getLastSub());
     }
   }
+
   public final boolean returnFromMessageCall(MessageFrame frame) {
     return opCode() == RETURN && frame.getType() == MESSAGE_CALL;
   }
