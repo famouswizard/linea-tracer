@@ -77,6 +77,7 @@ public class ExecutionEnvironment {
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
+      /*
       if (traceFilePath != null) {
         if (System.getenv("PRESERVE_TRACE_FILES") == null) {
           boolean traceFileDeleted = traceFilePath.toFile().delete();
@@ -85,6 +86,7 @@ public class ExecutionEnvironment {
               log -> log.debug("trace file {} deleted {}", finalTraceFilePath, traceFileDeleted));
         }
       }
+       */
     }
   }
 
@@ -137,14 +139,6 @@ public class ExecutionEnvironment {
     return builder
         .privacyParameters(PrivacyParameters.DEFAULT)
         .badBlocksManager(badBlockManager)
-            .contractCreationProcessorBuilder(
-        evm ->
-          new ContractCreationProcessor(
-            evm,
-            true,
-            List.of(),
-            1,
-            Set.of()))
         .build(schedule);
   }
 
