@@ -123,8 +123,8 @@ public class ConflationStorageTest {
       TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>
               storageData = conflationStorage.get(keys[i]);
       // asserts for the first and last storage values in conflation
-      assertEquals(storageData.getFirst().getValueCurrent(), expectedFirst[i]);
-      assertEquals(storageData.getLast().getValueNext(), expectedLast[i]);
+      assertEquals(expectedFirst[i], storageData.getFirst().getValueCurrent());
+      assertEquals(expectedLast[i], storageData.getLast().getValueNext());
     }
     System.out.println("Done");
   }

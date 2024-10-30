@@ -129,8 +129,8 @@ public class BlockwiseStorageTest {
                 storageData = blockMap.get(key);
         // asserts for the first and last storage values in conflation
         // -1 due to block numbering
-        assertEquals(storageData.getFirst().getValueCurrent(), expectedFirst[block-1][i]);
-        assertEquals(storageData.getLast().getValueNext(), expectedLast[block-1][i]);
+        assertEquals(expectedFirst[block-1][i], storageData.getFirst().getValueCurrent());
+        assertEquals(expectedLast[block-1][i], storageData.getLast().getValueNext());
       }
     }
 

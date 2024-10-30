@@ -123,8 +123,8 @@ public class ConflationAccountTest {
       TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>
               accountData = conflationMap.get(keys[i]);
       // asserts for the first and last storage values in conflation
-      assertEquals(accountData.getFirst().oldState().balance(), expectedFirst[i]);
-      assertEquals(accountData.getLast().newState().balance(), expectedLast[i]);
+      assertEquals(expectedFirst[i], accountData.getFirst().oldState().balance());
+      assertEquals(expectedLast[i], accountData.getLast().newState().balance());
     }
 
 

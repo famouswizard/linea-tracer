@@ -114,8 +114,8 @@ public class TransactionStorageTest {
                 storageData = storageMap.get(keys[i]);
         // asserts for the first and last storage values in conflation
         // -1 due to block numbering
-        assertEquals(storageData.getFirst().getValueCurrent(), expectedFirst[txCounter-1][i]);
-        assertEquals(storageData.getLast().getValueNext(), expectedLast[txCounter-1][i]);
+        assertEquals(expectedFirst[txCounter-1][i], storageData.getFirst().getValueCurrent());
+        assertEquals(expectedLast[txCounter-1][i], storageData.getLast().getValueNext());
       }
     }
 
