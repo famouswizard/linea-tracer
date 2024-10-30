@@ -59,20 +59,21 @@ public class ExampleSolidityTest {
             ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount frameworkEntrypointAccount =
-            ToyAccount.builder()
-                    .address(Address.fromHexString("0x22222"))
-                    .balance(Wei.ONE)
-                    .nonce(5)
-                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
-                    .build();
+        ToyAccount.builder()
+            .address(Address.fromHexString("0x22222"))
+            .balance(Wei.ONE)
+            .nonce(5)
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
+            .build();
 
     ToyAccount snippetAccount =
-            ToyAccount.builder()
-                    .address(Address.fromHexString("0x11111"))
-                    .balance(Wei.ONE)
-                    .nonce(6)
-                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestSnippet_Events.class))
-                    .build();
+        ToyAccount.builder()
+            .address(Address.fromHexString("0x11111"))
+            .balance(Wei.ONE)
+            .nonce(6)
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestSnippet_Events.class))
+            .build();
+
 
     Function snippetFunction =
             new Function(
@@ -147,12 +148,13 @@ public class ExampleSolidityTest {
             ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount contractAccount =
-            ToyAccount.builder()
-                    .address(Address.fromHexString("0x11111"))
-                    .balance(Wei.ONE)
-                    .nonce(6)
-                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestSnippet_Events.class))
-                    .build();
+        ToyAccount.builder()
+            .address(Address.fromHexString("0x11111"))
+            .balance(Wei.ONE)
+            .nonce(6)
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestSnippet_Events.class))
+            .build();
+
 
     Function function =
             new Function(
@@ -197,12 +199,13 @@ public class ExampleSolidityTest {
             ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount contractAccount =
-            ToyAccount.builder()
-                    .address(Address.fromHexString("0x11111"))
-                    .balance(Wei.ONE)
-                    .nonce(6)
-                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestStorage.class))
-                    .build();
+        ToyAccount.builder()
+            .address(Address.fromHexString("0x11111"))
+            .balance(Wei.ONE)
+            .nonce(6)
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestStorage.class))
+            .build();
+
 
     Function function =
             new Function(
@@ -236,20 +239,20 @@ public class ExampleSolidityTest {
             ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount frameworkEntrypointAccount =
-            ToyAccount.builder()
-                    .address(Address.fromHexString("0x22222"))
-                    .balance(Wei.ONE)
-                    .nonce(5)
-                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
-                    .build();
+        ToyAccount.builder()
+            .address(Address.fromHexString("0x22222"))
+            .balance(Wei.ONE)
+            .nonce(5)
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
+            .build();
 
     ToyAccount yulAccount =
-            ToyAccount.builder()
-                    .address(Address.fromHexString("0x11111"))
-                    .balance(Wei.ONE)
-                    .nonce(6)
-                    .code(SmartContractUtils.getYulContractRuntimeByteCode("DynamicBytecode.yul"))
-                    .build();
+        ToyAccount.builder()
+            .address(Address.fromHexString("0x11111"))
+            .balance(Wei.ONE)
+            .nonce(6)
+            .code(SmartContractUtils.getYulContractRuntimeByteCode("DynamicBytecode.yul"))
+            .build();
 
     Function yulFunction = new Function("Write", Collections.emptyList(), Collections.emptyList());
 

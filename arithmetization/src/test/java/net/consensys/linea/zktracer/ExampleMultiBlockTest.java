@@ -221,20 +221,21 @@ class ExampleMultiBlockTest {
             ToyAccount.builder().balance(Wei.fromEth(1000)).nonce(5).address(senderAddress).build();
 
     ToyAccount frameworkEntrypointAccount =
-            ToyAccount.builder()
-                    .address(Address.fromHexString("0x22222"))
-                    .balance(Wei.of(1000))
-                    .nonce(6)
-                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
-                    .build();
+        ToyAccount.builder()
+            .address(Address.fromHexString("0x22222"))
+            .balance(Wei.of(1000))
+            .nonce(6)
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
+            .build();
 
     ToyAccount snippetAccount =
-            ToyAccount.builder()
-                    .address(Address.fromHexString("0x11111"))
-                    .balance(Wei.of(1000))
-                    .nonce(7)
-                    .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestSnippet_Events.class))
-                    .build();
+        ToyAccount.builder()
+            .address(Address.fromHexString("0x11111"))
+            .balance(Wei.of(1000))
+            .nonce(7)
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestSnippet_Events.class))
+            .build();
+
 
     Function snippetFunction =
             new Function(
