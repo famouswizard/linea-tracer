@@ -36,10 +36,12 @@ import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
+import net.consensys.linea.zktracer.module.hub.transients.StateManagerMetadata;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -136,6 +138,19 @@ public final class AccountFragment
       rlpAddrSubFragment.trace(trace);
     }
 
+    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> transactionAccountMap = transactionProcessingMetadata.getAccountFirstAndLastMap();
+    StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
+
+    Map<StateManagerMetadata.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> accountFirstLastBlockMap =
+    stateManagerMetadata.getAccountFirstLastBlockMap();
+    StateManagerMetadata.AddrBlockPair current = new StateManagerMetadata.AddrBlockPair(oldState.address(), transactionProcessingMetadata.getRelativeBlockNumber());
+
+    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> accountFirstLastConflationMap =
+    stateManagerMetadata.getAccountFirstLastConflationMap();
+
+    long minDeploymentNumberInBlock = stateManagerMetadata.getMinDeplNoBlock().get(current);
+    long maxDeploymentNumberInBlock = stateManagerMetadata.getMaxDeplNoBlock().get(current);
+
     return trace
         .peekAtAccount(true)
         .pAccountAddressHi(highPart(oldState.address()))
@@ -174,7 +189,19 @@ public final class AccountFragment
         .pAccountDeploymentStatusInfty(existsInfinity)
         .pAccountTrmFlag(addressToTrim.isPresent())
         .pAccountTrmRawAddressHi(addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
-        .pAccountIsPrecompile(isPrecompile(oldState.address()));
+        .pAccountIsPrecompile(isPrecompile(oldState.address()))
+        .pAccountFirstInTxn(this == transactionAccountMap.get(oldState.address()).getFirst())
+        .pAccountAgainInTxn(this != transactionAccountMap.get(oldState.address()).getFirst())
+        .pAccountFinalInTxn(this == transactionAccountMap.get(oldState.address()).getLast())
+        .pAccountFirstInBlk(this == accountFirstLastBlockMap.get(current).getFirst())
+        .pAccountAgainInBlk(this != accountFirstLastBlockMap.get(current).getFirst())
+        .pAccountFinalInBlk(this == accountFirstLastBlockMap.get(current).getLast())
+        .pAccountFirstInCnf(this == accountFirstLastConflationMap.get(oldState.address()).getFirst())
+        .pAccountAgainInCnf(this != accountFirstLastConflationMap.get(oldState.address()).getFirst())
+        .pAccountFinalInCnf(this == accountFirstLastConflationMap.get(oldState.address()).getLast())
+        .pAccountDeploymentNumberFirstInBlock(minDeploymentNumberInBlock)
+        .pAccountDeploymentNumberFinalInBlock(maxDeploymentNumberInBlock)
+        ;
   }
 
   @Override
