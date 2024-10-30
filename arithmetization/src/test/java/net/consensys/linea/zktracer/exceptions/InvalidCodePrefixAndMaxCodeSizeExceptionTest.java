@@ -79,7 +79,6 @@ public class InvalidCodePrefixAndMaxCodeSizeExceptionTest {
         ToyExecutionEnvironmentV2.builder().accounts(List.of(userAccount)).transaction(tx).build();
 
     toyExecutionEnvironment.run();
-    // The program dies before returning here
 
     assertEquals(
         INVALID_CODE_PREFIX,
@@ -117,7 +116,6 @@ public class InvalidCodePrefixAndMaxCodeSizeExceptionTest {
         ToyExecutionEnvironmentV2.builder().accounts(List.of(userAccount)).transaction(tx).build();
 
     toyExecutionEnvironment.run();
-    // The program dies before returning here
 
     assertEquals(
         TracedException.MAX_CODE_SIZE_EXCEPTION,
