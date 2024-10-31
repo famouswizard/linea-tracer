@@ -1200,16 +1200,18 @@ public class Hub implements Module {
                   new StateManagerMetadata.AddrBlockPair(addr, blockNumber);
 
           // localValue exists for sure because addr belongs to the keySet of the local map
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> fetchedValue =
-                  localMapAccount.get(addr);
           TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> localValueAccount =
-                  fetchedValue.copy();
+                  localMapAccount.get(addr);
           if (!blockMapAccount.containsKey(pairAddrBlock)) {
             // the pair is not present in the map
             blockMapAccount.put(pairAddrBlock, localValueAccount);
           } else {
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> fetchedValue =
                     blockMapAccount.get(pairAddrBlock);
+            // we make a copy that will be modified to not change the values already present in the
+            // transaction maps
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
+                    fetchedValue.copy();
             // update the first part of the blockValue
             // Todo: Refactor and remove code duplication
             if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
@@ -1268,17 +1270,19 @@ public class Hub implements Module {
                   new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, blockNumber);
 
           // localValue exists for sure because addr belongs to the keySet of the local map
-          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> fetchedValue =
-                  localMapStorage.get(addrStorageKeyPair);
           TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> localValueStorage =
-                  fetchedValue.copy();
+                  localMapStorage.get(addrStorageKeyPair);
 
           if (!blockMapStorage.containsKey(addrStorageBlockTuple)) {
             // the pair is not present in the map
             blockMapStorage.put(addrStorageBlockTuple, localValueStorage);
           } else {
-            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValueStorage =
+            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> fetched =
                     blockMapStorage.get(addrStorageBlockTuple);
+            // we make a copy that will be modified to not change the values already present in the
+            // transaction maps
+            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValueStorage =
+                    fetched.copy();
             // update the first part of the blockValue
             if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
                     localValueStorage.getFirstDom(),
