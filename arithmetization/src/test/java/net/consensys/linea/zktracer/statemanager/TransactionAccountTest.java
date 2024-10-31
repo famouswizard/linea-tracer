@@ -105,9 +105,11 @@ public class TransactionAccountTest {
                               add(15L),
               },
               {
-                      TestContext.defaultBalance.subtract(200L).add(500L).
+                      TestContext.defaultBalance.subtract(8L).add(9L).
+                      subtract(15L).subtract(200L).add(500L).
                               subtract(900L),
-                      TestContext.defaultBalance.add(200L).subtract(500L).
+                      TestContext.defaultBalance.add(8L).subtract(9L).
+                              add(15L).add(200L).subtract(500L).
                               add(900L),
               }
       };
