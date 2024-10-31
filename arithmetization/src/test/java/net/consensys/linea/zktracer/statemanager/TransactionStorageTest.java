@@ -45,7 +45,7 @@ public class TransactionStorageTest {
             tc.frameworkEntryPointAccount,
             // Creates, writes, reads and self-destructs generate 2 logs,
             // Reverted operations only have 1 log
-            List.of(6, 6)
+            List.of(7, 7)
     );
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
@@ -61,9 +61,11 @@ public class TransactionStorageTest {
                                     tc.writeToStorageCall(tc.addresses[0], 3L, 1L, false, BigInteger.ONE),
                                     tc.writeToStorageCall(tc.addresses[0], 3L, 2L, false, BigInteger.ONE),
                                     tc.writeToStorageCall(tc.addresses[0], 3L, 3L, false, BigInteger.ONE),
+                                    tc.writeToStorageCall(tc.addresses[0], 3L, 1234L, true, BigInteger.ONE),
                              }),
                     tc.newTxFromCalls(tc.externallyOwnedAccounts[0], tc.keyPairs[0], new FrameworkEntrypoint.ContractCall[]
                             {
+                                    tc.writeToStorageCall(tc.addresses[0], 3L, 1234L, true, BigInteger.ONE),
                                     tc.writeToStorageCall(tc.addresses[0], 3L, 4L, false, BigInteger.ONE),
                                     tc.writeToStorageCall(tc.addresses[0], 3L, 5L, false, BigInteger.ONE),
                                     tc.writeToStorageCall(tc.addresses[0], 3L, 6L, false, BigInteger.ONE),

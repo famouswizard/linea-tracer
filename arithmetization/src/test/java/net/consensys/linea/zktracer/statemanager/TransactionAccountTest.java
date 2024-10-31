@@ -46,8 +46,9 @@ public class TransactionAccountTest {
     TransactionProcessingResultValidator resultValidator = new StateManagerTestValidator(
             tc.frameworkEntryPointAccount,
             // Creates, writes, reads and self-destructs generate 2 logs,
+            // transfers generate 3 logs
             // Reverted operations only have 1 log
-            List.of(9, 9)
+            List.of(10, 10)
     );
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
@@ -63,11 +64,13 @@ public class TransactionAccountTest {
                                     tc.transferToCall(tc.addresses[0], tc.addresses[2], 8L, false, BigInteger.ONE),
                                     tc.transferToCall(tc.addresses[2], tc.addresses[0], 9L, false, BigInteger.ONE),
                                     tc.transferToCall(tc.addresses[0], tc.addresses[2], 15L, false, BigInteger.ONE),
+                                    tc.transferToCall(tc.addresses[2], tc.addresses[0], 1234L, true, BigInteger.ONE), // revert this one
                              }),
                     tc.newTxFromCalls(tc.externallyOwnedAccounts[0], tc.keyPairs[0], new FrameworkEntrypoint.ContractCall[]
                             {
                                     tc.transferToCall(tc.addresses[0], tc.addresses[2], 200L, false, BigInteger.ONE),
                                     tc.transferToCall(tc.addresses[2], tc.addresses[0], 500L, false, BigInteger.ONE),
+                                    tc.transferToCall(tc.addresses[2], tc.addresses[0], 1234L, true, BigInteger.ONE), // revert this one
                                     tc.transferToCall(tc.addresses[0], tc.addresses[2], 900L, false, BigInteger.ONE),
                             })
 

@@ -46,8 +46,9 @@ public class StateManagerTestValidator implements TransactionProcessingResultVal
         // One event from the snippet
         // One event from the framework entrypoint about contract call
         System.out.println("Number of logs: "+result.getLogs().size());
-        assertEquals(result.getLogs().size(), expectedNoLogs.get(txCounter));
-        for (Log log : result.getLogs()) {
+        assertEquals(expectedNoLogs.get(txCounter), result.getLogs().size());
+        for (int i = 0; i < result.getLogs().size(); i++) {
+            Log currentLog = result.getLogs().get(i);
             String callEventSignature = EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT);
             String writeEventSignature = EventEncoder.encode(StateManagerEvents.WRITE_EVENT);
             String readEventSignature = EventEncoder.encode(StateManagerEvents.READ_EVENT);
@@ -55,16 +56,16 @@ public class StateManagerTestValidator implements TransactionProcessingResultVal
             String createdEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTCREATED_EVENT);
             String sentETHEventSignature = EventEncoder.encode(StateManagerEvents.PAYETH_EVENT);
             String recETHEventSignature = EventEncoder.encode(StateManagerEvents.RECETH_EVENT);
-            String logTopic = log.getTopics().getFirst().toHexString();
+            String logTopic = currentLog.getTopics().getFirst().toHexString();
             if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
                 TestSnippet_Events.DataNoIndexesEventResponse response =
-                        TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(log));
+                        TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(currentLog));
                 //assertEquals(response.singleInt, BigInteger.valueOf(123456));
             } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
                     .equals(logTopic)) {
                 FrameworkEntrypoint.CallExecutedEventResponse response =
-                        FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
-                if (result.getLogs().size() != 1) {
+                        FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(currentLog));
+                if (i > 0 && !result.getLogs().get(i-1).getTopics().getFirst().toHexString().equals(callEventSignature)) {
                     // when the number of logs is 1, in our tests we will have an operation
                     // with the revert flag set to true.
                     assertTrue(response.isSuccess);

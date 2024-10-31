@@ -48,7 +48,7 @@ public class BlockwiseAccountTest {
             // Reverted operations only have 1 log
             List.of(3, 3, 3,
                     3, 3, 3,
-                    3, 3, 3)
+                    3, 3, 3, 1)
     );
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
@@ -71,7 +71,9 @@ public class BlockwiseAccountTest {
               .addBlock(List.of(
                       tc.transferTo(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], tc.addresses[2], 100L, false, BigInteger.ONE),
                       tc.transferTo(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[2], tc.addresses[0], 200L, false, BigInteger.ONE),
-                      tc.transferTo(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], tc.addresses[2], 500L, false, BigInteger.ONE)              ))
+                      tc.transferTo(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], tc.addresses[2], 500L, false, BigInteger.ONE),
+                      tc.transferTo(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], tc.addresses[2], 1234L, true, BigInteger.ONE)
+              ))
               .transactionProcessingResultValidator(resultValidator)
               .build()
               .run();

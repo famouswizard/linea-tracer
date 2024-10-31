@@ -45,7 +45,7 @@ public class BlockwiseStorageTest {
             // Reverted operations only have 1 log
             List.of(2, 2, 2,
                     2, 2, 2,
-                    2, 2, 2)
+                    2, 2, 2, 1)
     );
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
@@ -72,7 +72,8 @@ public class BlockwiseStorageTest {
             .addBlock(List.of(
                     tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], 3L, 7L, false, BigInteger.ONE),
                     tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], 3L, 8L, false, BigInteger.ONE),
-                    tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], 3L, 9L, false, BigInteger.ONE)
+                    tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], 3L, 9L, false, BigInteger.ONE),
+                    tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], 3L, 1234L, true, BigInteger.ONE)
                     ))
             .transactionProcessingResultValidator(resultValidator)
             .build()
