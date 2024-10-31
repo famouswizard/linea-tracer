@@ -33,6 +33,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
@@ -153,6 +154,16 @@ public class TransactionProcessingMetadata {
     public static boolean strictlySmallerStamps(
         int firstDom, int firstSub, int lastDom, int lastSub) {
       return firstDom < lastDom || (firstDom == lastDom && firstSub > lastSub);
+    }
+    public FragmentFirstAndLast<TraceFragment> copy() {
+      return new FragmentFirstAndLast<>(
+              this.first,
+              this.last,
+              this.firstDom,
+              this.firstSub,
+              this.lastDom,
+              this.lastSub
+      );
     }
   }
 

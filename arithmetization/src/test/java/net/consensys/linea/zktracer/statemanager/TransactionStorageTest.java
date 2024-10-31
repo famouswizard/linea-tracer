@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.statemanager;
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
-import net.consensys.linea.zktracer.StateManagerTestValidator;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.transients.StateManagerMetadata;

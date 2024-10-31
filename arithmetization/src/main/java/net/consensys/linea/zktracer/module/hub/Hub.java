@@ -1270,8 +1270,10 @@ public class Hub implements Module {
                   new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, blockNumber);
 
           // localValue exists for sure because addr belongs to the keySet of the local map
-          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> localValueStorage =
+          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> fetchedValue =
                   localMapStorage.get(addrStorageKeyPair);
+          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> localValueStorage =
+                  fetchedValue.copy();
 
           if (!blockMapStorage.containsKey(addrStorageBlockTuple)) {
             // the pair is not present in the map
@@ -1290,7 +1292,7 @@ public class Hub implements Module {
               blockValueStorage.setFirst(localValueStorage.getFirst());
               blockValueStorage.setFirstDom(localValueStorage.getFirstDom());
               blockValueStorage.setFirstSub(localValueStorage.getFirstSub());
-
+            }
               // update the last part of the blockValue
               if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
                       blockValueStorage.getLastDom(),
@@ -1303,8 +1305,9 @@ public class Hub implements Module {
                 blockValueStorage.setLastDom(localValueStorage.getLastDom());
                 blockValueStorage.setLastSub(localValueStorage.getLastSub());
               }
+
               blockMapStorage.put(addrStorageBlockTuple, blockValueStorage);
-            }
+
           }
         }
       }

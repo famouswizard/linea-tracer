@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.statemanager;
 
 import net.consensys.linea.testing.*;
-import net.consensys.linea.zktracer.StateManagerTestValidator;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
@@ -24,7 +23,6 @@ import net.consensys.linea.zktracer.module.hub.transients.StateManagerMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
