@@ -24,6 +24,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.transients.StateManagerMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -32,11 +34,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TransactionStorageTest {
+public class TransactionAccountTest {
   TestContext tc;
 
   @Test
-  void testTransactionMapStorage() {
+  void testTransactionMapAccount() {
     // initialize the test context
     this.tc = new TestContext();
     this.tc.initializeTestContext();
@@ -45,7 +47,7 @@ public class TransactionStorageTest {
             tc.frameworkEntryPointAccount,
             // Creates, writes, reads and self-destructs generate 2 logs,
             // Reverted operations only have 1 log
-            List.of(6, 6)
+            List.of(9, 9)
     );
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
@@ -58,15 +60,15 @@ public class TransactionStorageTest {
             .addBlock(List.of(
                     tc.newTxFromCalls(tc.externallyOwnedAccounts[0], tc.keyPairs[0], new FrameworkEntrypoint.ContractCall[]
                             {
-                                    tc.writeToStorageCall(tc.addresses[0], 3L, 1L, false, BigInteger.ONE),
-                                    tc.writeToStorageCall(tc.addresses[0], 3L, 2L, false, BigInteger.ONE),
-                                    tc.writeToStorageCall(tc.addresses[0], 3L, 3L, false, BigInteger.ONE),
+                                    tc.transferToCall(tc.addresses[0], tc.addresses[2], 8L, false, BigInteger.ONE),
+                                    tc.transferToCall(tc.addresses[2], tc.addresses[0], 9L, false, BigInteger.ONE),
+                                    tc.transferToCall(tc.addresses[0], tc.addresses[2], 15L, false, BigInteger.ONE),
                              }),
                     tc.newTxFromCalls(tc.externallyOwnedAccounts[0], tc.keyPairs[0], new FrameworkEntrypoint.ContractCall[]
                             {
-                                    tc.writeToStorageCall(tc.addresses[0], 3L, 4L, false, BigInteger.ONE),
-                                    tc.writeToStorageCall(tc.addresses[0], 3L, 5L, false, BigInteger.ONE),
-                                    tc.writeToStorageCall(tc.addresses[0], 3L, 6L, false, BigInteger.ONE),
+                                    tc.transferToCall(tc.addresses[0], tc.addresses[2], 200L, false, BigInteger.ONE),
+                                    tc.transferToCall(tc.addresses[2], tc.addresses[0], 500L, false, BigInteger.ONE),
+                                    tc.transferToCall(tc.addresses[0], tc.addresses[2], 900L, false, BigInteger.ONE),
                             })
 
             ))
@@ -79,43 +81,54 @@ public class TransactionStorageTest {
 
 
 
-    // prepare data for asserts
-    // expected first values for the keys we are testing
-    int noBlocks = 3;
-    EWord[][] expectedFirst = {
-            {
-              EWord.of(0L),
-            },
-            {
-              EWord.of(3L),
-            },
-    };
-    // expected last values for the keys we are testing
-    EWord[][] expectedLast = {
-            {
-              EWord.of(3L),
-            },
-            {
-              EWord.of(6L),
-            },
-    };
-    // prepare the key pairs
-    TransactionProcessingMetadata.AddrStorageKeyPair[] keys = {
-            new TransactionProcessingMetadata.AddrStorageKeyPair(tc.initialAccounts[0].getAddress(), EWord.of(3L)),
-    };
+      // prepare data for asserts
+      // expected first values for the keys we are testing
+      Wei[][] expectedFirst = {
+              {
+                  TestContext.defaultBalance,
+                      TestContext.defaultBalance,
+              },
+              {
+                      TestContext.defaultBalance.subtract(8L).add(9L).
+                              subtract(15L),
+                      TestContext.defaultBalance.add(8L).subtract(9L).
+                              add(15L),
+              }
+      };
 
+      // expected last values for the keys we are testing
+      Wei[][] expectedLast = {
+              {
+                      TestContext.defaultBalance.subtract(8L).add(9L).
+                              subtract(15L),
+                      TestContext.defaultBalance.add(8L).subtract(9L).
+                              add(15L),
+              },
+              {
+                      TestContext.defaultBalance.subtract(200L).add(500L).
+                              subtract(900L),
+                      TestContext.defaultBalance.add(200L).subtract(500L).
+                              add(900L),
+              }
+      };
+
+      // prepare the key pairs
+      Address[] keys = {
+              tc.initialAccounts[0].getAddress(),
+              tc.initialAccounts[2].getAddress(),
+      };
 
     // blocks are numbered starting from 1
     for (int txCounter = 1; txCounter <= txn.size(); txCounter++) {
-      Map<TransactionProcessingMetadata. AddrStorageKeyPair, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
-              storageMap = txn.get(txCounter-1).getStorageFirstAndLastMap();
+        Map<Address, TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>>
+              accountMap = txn.get(txCounter-1).getAccountFirstAndLastMap();
       for (int i = 0; i < keys.length; i++) {
-        TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>
-                storageData = storageMap.get(keys[i]);
+        TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>
+                accountData = accountMap.get(keys[i]);
         // asserts for the first and last storage values in conflation
         // -1 due to block numbering
-        assertEquals(expectedFirst[txCounter-1][i], storageData.getFirst().getValueCurrent());
-        assertEquals(expectedLast[txCounter-1][i], storageData.getLast().getValueNext());
+        assertEquals(expectedFirst[txCounter-1][i], accountData.getFirst().oldState().balance());
+        assertEquals(expectedLast[txCounter-1][i], accountData.getLast().newState().balance());
       }
     }
 

@@ -115,7 +115,7 @@ public class TestContext {
     }
 
     // destination must be our .yul smart contract
-    Transaction wrapWrite(ToyAccount sender, KeyPair senderKeyPair, FrameworkEntrypoint.ContractCall[] contractCalls) {
+    Transaction newTxFromCalls(ToyAccount sender, KeyPair senderKeyPair, FrameworkEntrypoint.ContractCall[] contractCalls) {
         Function frameworkEntryPointFunction =
                 new Function(
                         FrameworkEntrypoint.FUNC_EXECUTECALLS,
@@ -314,6 +314,26 @@ public class TestContext {
         }
         return tx;
     }
+
+    FrameworkEntrypoint.ContractCall transferToCall(Address destination, Address recipient, long amount, boolean revertFlag, BigInteger callType) {
+        String recipientAddressString = recipient.toHexString();
+        Function yulFunction = new Function("transferTo",
+                Arrays.asList(new org.web3j.abi.datatypes.Address(recipientAddressString), new Uint256(amount), new org.web3j.abi.datatypes.Bool(revertFlag)),
+                Collections.emptyList());
+
+
+        var encoding = FunctionEncoder.encode(yulFunction);
+        FrameworkEntrypoint.ContractCall snippetContractCall =
+                new FrameworkEntrypoint.ContractCall(
+                        /*Address*/ destination.toHexString(),
+                        /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
+                        /*gasLimit*/ BigInteger.ZERO,
+                        /*value*/ BigInteger.ZERO,
+                        /*callType*/ callType); // Normal call, not a delegate call as would be the default
+        return snippetContractCall;
+    }
+
+
 
     // destination must be our .yul smart contract
     Transaction deployWithCreate2(ToyAccount sender, KeyPair senderKeyPair, Address destination, String saltString, Bytes contractBytes) {
