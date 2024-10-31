@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TestContext {
     Long txNonce = null;
     static final Long gasLimit = 5000000L;
-    static final Wei defaultBalance = Wei.of(1500L);
+    static final Wei defaultBalance = Wei.of(2500L);
     static final int numberOfAccounts = 10;
     static final int numberOfNewAccounts = 10;
     static final int numberOfEOA = 1;
