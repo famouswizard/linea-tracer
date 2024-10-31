@@ -154,6 +154,17 @@ public class TransactionProcessingMetadata {
         int firstDom, int firstSub, int lastDom, int lastSub) {
       return firstDom < lastDom || (firstDom == lastDom && firstSub > lastSub);
     }
+
+    public FragmentFirstAndLast<TraceFragment> copy() {
+      return new FragmentFirstAndLast<TraceFragment>(
+              this.first,
+              this.last,
+              this.firstDom,
+              this.firstSub,
+              this.lastDom,
+              this.lastSub
+      );
+    }
   }
 
   @EqualsAndHashCode
@@ -219,6 +230,7 @@ public class TransactionProcessingMetadata {
           new FragmentFirstAndLast<StorageFragment>(fragment, fragment, dom, sub, dom, sub);
       txnStorageFirstAndLastMap.put(key, txnFirstAndLast);
     } else {
+      // the storage key has already been acessed for this account
       TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> txnFirstAndLast =
           txnStorageFirstAndLastMap.get(key);
       // Replace condition
