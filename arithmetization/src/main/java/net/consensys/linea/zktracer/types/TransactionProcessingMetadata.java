@@ -199,8 +199,9 @@ public class TransactionProcessingMetadata {
     final Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
         txnAccountFirstAndLastMap = getAccountFirstAndLastMap();
     if (!txnAccountFirstAndLastMap.containsKey(key)) {
-      TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> txnFirstAndLast =
+      TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> fetched =
           new FragmentFirstAndLast<AccountFragment>(fragment, fragment, dom, sub, dom, sub);
+      TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> txnFirstAndLast = fetched.copy();
       txnAccountFirstAndLastMap.put(key, txnFirstAndLast);
     } else {
       TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> txnFirstAndLast =
