@@ -1194,19 +1194,16 @@ public class Hub implements Module {
         Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
                 localMapAccount = metadata.getAccountFirstAndLastMap();
 
-        Map<
-                TransactionProcessingMetadata.AddrStorageKeyPair,
-                TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-                localMapStorage = metadata.getStorageFirstAndLastMap();
-
         // Update the block map for the account
         for (Address addr : localMapAccount.keySet()) {
           StateManagerMetadata.AddrBlockPair pairAddrBlock =
                   new StateManagerMetadata.AddrBlockPair(addr, blockNumber);
 
           // localValue exists for sure because addr belongs to the keySet of the local map
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> localValueAccount =
+          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> fetchedValue =
                   localMapAccount.get(addr);
+          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> localValueAccount =
+                  fetchedValue.copy();
           if (!blockMapAccount.containsKey(pairAddrBlock)) {
             // the pair is not present in the map
             blockMapAccount.put(pairAddrBlock, localValueAccount);
@@ -1225,6 +1222,7 @@ public class Hub implements Module {
               blockValue.setFirst(localValueAccount.getFirst());
               blockValue.setFirstDom(localValueAccount.getFirstDom());
               blockValue.setFirstSub(localValueAccount.getFirstSub());
+            }
 
               // update the last part of the blockValue
               if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
@@ -1239,7 +1237,7 @@ public class Hub implements Module {
                 blockValue.setLastSub(localValueAccount.getLastSub());
               }
               blockMapAccount.put(pairAddrBlock, blockValue);
-            }
+
           }
 
         }
