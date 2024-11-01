@@ -17,5 +17,30 @@ package net.consensys.linea.zktracer.module.gas;
 
 import java.math.BigInteger;
 
-public record GasParameters(
-    int ctMax, BigInteger gasActual, BigInteger gasCost, boolean xahoy, boolean oogx) {}
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+@Getter
+@Setter
+@Accessors(fluent = true)
+public class GasParameters {
+  BigInteger gasActual;
+  BigInteger gasCost;
+  boolean xahoy;
+  boolean oogx;
+
+  public int compareTo(GasParameters other) {
+    if (oogx() != other.oogx()) {
+      return oogx() ? 1 : -1;
+    }
+    if (xahoy() != other.xahoy()) {
+      return xahoy() ? 1 : -1;
+    }
+    final int gasActualComparison = gasActual().compareTo(other.gasActual());
+    if (gasActualComparison != 0) {
+      return gasActualComparison;
+    }
+    return gasCost().compareTo(other.gasCost());
+  }
+}

@@ -18,14 +18,13 @@ package net.consensys.linea.zktracer.module.romlex;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import java.nio.MappedByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
@@ -37,8 +36,6 @@ import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -48,16 +45,12 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class RomLex
-    implements OperationSetModule<RomOperation>,
-        PostOpcodeDefer,
-        ImmediateContextEntryDefer,
-        ContextExitDefer {
+    implements OperationSetModule<RomOperation>, ImmediateContextEntryDefer, ContextExitDefer {
 
   private final Hub hub;
 
@@ -66,7 +59,8 @@ public class RomLex
       new ModuleOperationStackedSet<>();
 
   @Getter private List<RomOperation> sortedOperations;
-  private Bytes byteCode = Bytes.EMPTY;
+  Map<ContractMetadata, Integer> cfiMetadataCorrespondance = new HashMap<>();
+  @Getter private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
 
   @Getter private final DeferRegistry createDefers = new DeferRegistry();
@@ -87,19 +81,16 @@ public class RomLex
       throw new RuntimeException("Chunks have not been sorted yet");
     }
 
-    for (int i = 0; i < sortedOperations.size(); i++) {
-      final RomOperation c = sortedOperations.get(i);
-      if (c.metadata().equals(metadata)) {
-        return i + 1;
-      }
+    final Integer romOps = cfiMetadataCorrespondance.get(metadata);
+    if (romOps == null) {
+      throw new RuntimeException(
+          "RomChunk with:"
+              + String.format("\n\t\taddress = %s", metadata.address())
+              + String.format("\n\t\tdeployment number = %s", metadata.deploymentNumber())
+              + String.format("\n\t\tdeployment status = %s", metadata.underDeployment())
+              + "\n\tnot found");
     }
-
-    throw new RuntimeException(
-        "RomChunk with:"
-            + String.format("\n\t\taddress = %s", metadata.address())
-            + String.format("\n\t\tdeployment number = %s", metadata.deploymentNumber())
-            + String.format("\n\t\tdeployment status = %s", metadata.underDeployment())
-            + "\n\tnot found");
+    return romOps;
   }
 
   public Optional<RomOperation> getChunkByMetadata(final ContractMetadata metadata) {
@@ -116,12 +107,16 @@ public class RomLex
         return Optional.of(c);
       }
     }
-
-    return Optional.empty();
+    throw new RuntimeException(
+        "RomChunk with:"
+            + String.format("\n\t\taddress = %s", metadata.address())
+            + String.format("\n\t\tdeployment number = %s", metadata.deploymentNumber())
+            + String.format("\n\t\tdeployment status = %s", metadata.underDeployment())
+            + "\n\tnot found");
   }
 
   public Bytes getCodeByMetadata(final ContractMetadata metadata) {
-    return getChunkByMetadata(metadata).map(RomOperation::byteCode).orElse(Bytes.EMPTY);
+    return getChunkByMetadata(metadata).map(RomOperation::byteCode).orElseThrow();
   }
 
   // TODO: it would maybe make more sense to only implement traceContextEnter
@@ -135,7 +130,7 @@ public class RomLex
       final Address deploymentAddress = Address.contractAddress(tx.getSender(), tx.getNonce());
       final RomOperation operation =
           new RomOperation(
-              ContractMetadata.make(deploymentAddress, 1, true), false, false, tx.getInit().get());
+              ContractMetadata.canonical(hub, deploymentAddress), false, false, tx.getInit().get());
 
       operations.add(operation);
     }
@@ -159,7 +154,7 @@ public class RomLex
   }
 
   public void callRomLex(final MessageFrame frame) {
-    switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
+    switch (getOpCode(frame)) {
       case CREATE, CREATE2 -> {
         final long offset = Words.clampedToLong(frame.getStackItem(1));
         final long length = Words.clampedToLong(frame.getStackItem(2));
@@ -243,12 +238,11 @@ public class RomLex
                   }
                 });
       }
+
+      default -> throw new RuntimeException(
+          String.format("%s does not trigger the creation of ROM_LEX", getOpCode(frame)));
     }
   }
-
-  @Override
-  public void resolvePostExecution(
-      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {}
 
   @Override
   public void resolveUponContextEntry(Hub hub) {
@@ -264,7 +258,7 @@ public class RomLex
   }
 
   // This is the tracing for ROMLEX module
-  private void traceChunk(
+  private void traceOperation(
       final RomOperation operation,
       final int cfi,
       final int codeFragmentIndexInfinity,
@@ -291,6 +285,10 @@ public class RomLex
     sortedOperations = new ArrayList<>(operations.getAll());
     final RomOperationComparator ROM_CHUNK_COMPARATOR = new RomOperationComparator();
     sortedOperations.sort(ROM_CHUNK_COMPARATOR);
+    for (int i = 0; i < sortedOperations.size(); i++) {
+      final RomOperation romOperation = sortedOperations.get(i);
+      cfiMetadataCorrespondance.put(romOperation.metadata(), i + 1);
+    }
   }
 
   @Override
@@ -318,8 +316,8 @@ public class RomLex
     final int codeFragmentIndexInfinity = operations.size();
 
     int cfi = 0;
-    for (RomOperation chunk : sortedOperations) {
-      traceChunk(chunk, ++cfi, codeFragmentIndexInfinity, trace);
+    for (RomOperation operation : sortedOperations) {
+      traceOperation(operation, ++cfi, codeFragmentIndexInfinity, trace);
     }
   }
 

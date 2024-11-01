@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -106,6 +107,23 @@ public class CallFrame {
   @Getter @Setter private OpCodeData opCodeData = OpCodes.of(OpCode.STOP);
   @Getter private MessageFrame frame; // TODO: can we make this final ?
 
+  @Getter private boolean executionPaused = false;
+  @Getter private long lastValidGasNext = 0;
+
+  public void pauseCurrentFrame() {
+    Preconditions.checkState(!executionPaused);
+    executionPaused = true;
+  }
+
+  public void unpauseCurrentFrame() {
+    Preconditions.checkState(executionPaused);
+    executionPaused = false;
+  }
+
+  public void rememberGasNextBeforePausing() {
+    lastValidGasNext = frame.getRemainingGas();
+  }
+
   /** the ether amount given to this frame. */
   @Getter private Wei value = Wei.fromHexString("0xBadF00d"); // Marker for debugging
 
@@ -122,7 +140,7 @@ public class CallFrame {
   @Getter @Setter private Bytes returnData = Bytes.EMPTY;
 
   /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan returnDataSpan = new MemorySpan(0, 0);
+  @Getter @Setter private MemorySpan returnDataSpan = MemorySpan.empty();
 
   /** the return data provided by this frame */
   @Getter @Setter private Bytes outputData = Bytes.EMPTY;
@@ -131,7 +149,7 @@ public class CallFrame {
   @Getter @Setter private MemorySpan outputDataSpan;
 
   /** where this frame is expected to write its outputData within its parent's memory space. */
-  @Getter private MemorySpan returnDataTargetInCaller = MemorySpan.empty();
+  @Getter @Setter private MemorySpan returnDataTargetInCaller = MemorySpan.empty();
 
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
@@ -349,5 +367,13 @@ public class CallFrame {
       final MessageFrame frame, final MemorySpan memorySpan) {
     // TODO: optimize me please. Need a review of the MMU operation handling.
     return memorySpan.isEmpty() ? Bytes.EMPTY : frame.shadowReadMemory(0, frame.memoryByteSize());
+  }
+
+  public OpCode getOpCode() {
+    return getOpCode(frame);
+  }
+
+  public static OpCode getOpCode(MessageFrame frame) {
+    return OpCode.of(0xFF & frame.getCurrentOperation().getOpcode());
   }
 }

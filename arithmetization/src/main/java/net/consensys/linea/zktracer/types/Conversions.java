@@ -176,4 +176,16 @@ public class Conversions {
         bitLength == 0 || bitLength == 1, String.format("Can't convert %s to boolean", input));
     return bitLength == 1;
   }
+
+  public static String bytesToHex(byte[] bytes) {
+    StringBuilder sb = new StringBuilder();
+    for (byte b : bytes) {
+      sb.append(String.format("%02X ", b));
+    }
+    return sb.toString().trim();
+  }
+
+  public static int bytesToInt(Bytes bytes) {
+    return bytes.trimLeadingZeros().toInt();
+  }
 }

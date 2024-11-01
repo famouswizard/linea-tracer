@@ -22,10 +22,13 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +36,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +55,6 @@ import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextSection;
@@ -197,16 +200,18 @@ public class Hub implements Module {
     return state.lineCounter().lineCount();
   }
 
+  @Getter private final BigInteger chainId;
+
   /** List of all modules of the ZK-evm */
   // stateless modules
   @Getter private final Wcp wcp = new Wcp();
 
   private final Add add = new Add();
   private final Bin bin = new Bin();
-  private final Blockhash blockhash = new Blockhash(wcp);
+  private final Blockhash blockhash = new Blockhash(this, wcp);
   private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
-  private final Gas gas = new Gas();
+  @Getter private final Gas gas = new Gas(wcp);
   private final Mul mul = new Mul(this);
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
@@ -327,6 +332,7 @@ public class Hub implements Module {
                 exp,
                 ext,
                 euc,
+                gas,
                 logData,
                 logInfo,
                 mmu, // WARN: must be traced before the MMIO
@@ -395,12 +401,17 @@ public class Hub implements Module {
         .toList();
   }
 
-  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
+  public Hub(
+      final Address l2l1ContractAddress,
+      final Bytes l2l1Topic,
+      final BigInteger nonnegativeChainId) {
+    Preconditions.checkState(nonnegativeChainId.signum() >= 0);
+    chainId = nonnegativeChainId;
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
-    blockdata = new Blockdata(wcp, txnData, rlpTxn);
+    blockdata = new Blockdata(wcp, txnData, rlpTxn, chainId);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
@@ -412,7 +423,7 @@ public class Hub implements Module {
                     add,
                     bin,
                     blakeModexpData,
-                    blockhash,
+                    blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
                     ecData,
                     euc,
                     ext,
@@ -503,21 +514,26 @@ public class Hub implements Module {
     state.enter();
     txStack.enterTransaction(world, tx, transients.block());
 
-    defers.scheduleForPostTransaction(txStack.current());
+    final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
 
     this.enterTransaction();
 
-    if (!txStack.current().requiresEvmExecution()) {
+    if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.setProcessingPhase(TX_SKIP);
-      new TxSkippedSection(this, world, txStack.current(), transients);
+      new TxSkippedSection(this, world, transactionProcessingMetadata, transients);
     } else {
-      if (txStack.current().requiresPrewarming()) {
+      if (transactionProcessingMetadata.requiresPrewarming()) {
         state.setProcessingPhase(TX_WARM);
         new TxPreWarmingMacroSection(world, this);
       }
       state.setProcessingPhase(TX_INIT);
       new TxInitializationSection(this, world);
     }
+
+    // Note: for deployment transactions the deployment number / status were updated during the
+    // initialization phase. We are thus capturing the respective XXX_NEW's
+    transactionProcessingMetadata
+        .captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(this);
 
     /*
      * TODO: the ID = 0 (universal parent context) context should
@@ -528,7 +544,7 @@ public class Hub implements Module {
     callStack.getById(0).universalParentReturnDataContextNumber(this.stamp() + 1);
 
     for (Module m : modules) {
-      m.traceStartTx(world, txStack.current());
+      m.traceStartTx(world, transactionProcessingMetadata);
     }
   }
 
@@ -632,6 +648,9 @@ public class Hub implements Module {
 
       final long callDataContextNumber = callStack.currentCallFrame().contextNumber();
 
+      currentFrame().rememberGasNextBeforePausing();
+      currentFrame().pauseCurrentFrame();
+
       callStack.enter(
           frameType,
           newChildContextNumber(),
@@ -664,14 +683,6 @@ public class Hub implements Module {
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
 
     exitDeploymentFromDeploymentInfoPov(frame);
-
-    // TODO: why only do this at positive depth ?
-    if (frame.getDepth() > 0) {
-
-      final DeploymentExceptions contextExceptions =
-          DeploymentExceptions.fromFrame(this.currentFrame(), frame);
-      this.currentTraceSection().setContextExceptions(contextExceptions);
-    }
 
     // We take a snapshot before exiting the transaction
     if (frame.getDepth() == 0) {
@@ -712,6 +723,97 @@ public class Hub implements Module {
     this.unlatchStack(frame, this.currentFrame().childSpanningSection());
   }
 
+  public void tracePreExecution(final MessageFrame frame) {
+    checkArgument(
+        this.state().processingPhase == TX_EXEC,
+        "There can't be any execution if the HUB is not in execution phase");
+
+    this.processStateExec(frame);
+  }
+
+  public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
+    checkArgument(
+        this.state().processingPhase == TX_EXEC,
+        "There can't be any execution if the HUB is not in execution phase");
+
+    final TraceSection currentSection = state.currentTxTrace().currentSection();
+
+    compareLineaAndBesuGasCosts(frame, operationResult);
+
+    /*
+     * NOTE: whenever there is an exception, a context row
+     * is added at the end of the section; its purpose is
+     * to update the caller / creator context with empty
+     * return data.
+     */
+    if (isExceptional()) {
+      this.currentTraceSection()
+          .addFragments(ContextFragment.executionProvidesEmptyReturnData(this));
+      this.squashCurrentFrameOutputData();
+      this.squashParentFrameReturnData();
+    }
+
+    defers.resolvePostExecution(this, frame, operationResult);
+
+    if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
+      this.unlatchStack(frame, currentSection);
+    }
+  }
+
+  /**
+   * Compares the gas costs between Linea and Besu. The total cost should be the same for both, but
+   * it is batched/split differently. This is especially true for opcodes requiring memory
+   * expansion. In Linea's arithmetization, the cost of CALLs and CREATEs doesn't include the gas
+   * paid to the child context. This cost is accounted for separately. The deployment cost is
+   * included in the arithmetization but paid separately in Besu.
+   *
+   * @param frame the current message frame
+   * @param operationResult the result of the operation being executed
+   */
+  private void compareLineaAndBesuGasCosts(
+      MessageFrame frame, Operation.OperationResult operationResult) {
+    TraceSection currentSection = state.currentTxTrace().currentSection();
+    long besuGasCost = operationResult.getGasCost();
+    long lineaGasCost = currentSection.commonValues.gasCost();
+    long lineaGasCostExcludingDeploymentCost =
+        currentSection.commonValues.gasCostExcluduingDeploymentCost();
+
+    if (operationResult.getHaltReason() != null) {
+      return;
+    }
+
+    if (returnFromDeployment(frame)) {
+      checkState(
+          besuGasCost == lineaGasCostExcludingDeploymentCost,
+          "besuGasCost: %d, lineaGasCostExcludingDeploymentCost: %d",
+          besuGasCost,
+          lineaGasCostExcludingDeploymentCost);
+      return;
+    }
+
+    // TODO: same check but for CALL and CREATE's
+    if (!opCode().isCall() && !opCode().isCreate()) {
+      checkState(
+          besuGasCost == lineaGasCost,
+          "besuGasCost: %d, lineaGasCost: %d",
+          besuGasCost,
+          lineaGasCost);
+    }
+  }
+
+  public boolean isUnexceptional() {
+    return currentTraceSection().commonValues.tracedException() == NONE;
+  }
+
+  public boolean isExceptional() {
+    return !isUnexceptional();
+  }
+
+  public boolean raisesOogxOrIsUnexceptional() {
+    return currentTraceSection().commonValues.tracedException() == OUT_OF_GAS_EXCEPTION
+        || isUnexceptional();
+  }
+
   /**
    * If the current execution context is a deployment context the present method "exits" that
    * deployment in the sense that it updates the relevant deployment information.
@@ -719,7 +821,7 @@ public class Hub implements Module {
   private void exitDeploymentFromDeploymentInfoPov(MessageFrame frame) {
 
     // sanity check
-    Address bytecodeAddress = this.currentFrame().byteCodeAddress();
+    final Address bytecodeAddress = this.currentFrame().byteCodeAddress();
     checkArgument(bytecodeAddress.equals(frame.getContractAddress()));
     checkArgument(bytecodeAddress.equals(this.bytecodeAddress()));
 
@@ -773,93 +875,6 @@ public class Hub implements Module {
     transients.conflation().deploymentInfo().markAsNotUnderDeployment(bytecodeAddress);
   }
 
-  public void tracePreExecution(final MessageFrame frame) {
-    checkArgument(
-        this.state().processingPhase == TX_EXEC,
-        "There can't be any execution if the HUB is not in execution phase");
-
-    this.processStateExec(frame);
-  }
-
-  public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    checkArgument(
-        this.state().processingPhase == TX_EXEC,
-        "There can't be any execution if the HUB is not in execution phase");
-
-    final long gasCost = operationResult.getGasCost();
-    final TraceSection currentSection = state.currentTxTrace().currentSection();
-
-    final short exceptions = this.pch().exceptions();
-
-    final boolean memoryExpansionException = Exceptions.memoryExpansionException(exceptions);
-    final boolean outOfGasException = Exceptions.outOfGasException(exceptions);
-    final boolean unexceptional = Exceptions.none(exceptions);
-    final boolean exceptional = Exceptions.any(exceptions);
-
-    // NOTE: whenever there is an exception, a context row
-    // is added at the end of the section; its purpose is
-    // to update the caller / creator context with empty
-    // return data.
-    ///////////////////////////////////////////////////////
-    if (exceptional) {
-      this.currentTraceSection()
-          .addFragments(ContextFragment.executionProvidesEmptyReturnData(this));
-      this.squashCurrentFrameOutputData();
-      this.squashParentFrameReturnData();
-    }
-
-    // Setting gas cost IN MOST CASES
-    // TODO:
-    //  * complete this for CREATE's and CALL's
-    //    + are we getting the correct cost (i.e. excluding the 63/64-th's) ?
-    //  * make sure this aligns with exception handling of the zkevm
-    //  * write a method `final boolean requiresGasCost()` (huge switch case)
-    if ((!memoryExpansionException & outOfGasException) || unexceptional) {
-      currentSection.commonValues.gasCost(gasCost);
-      currentSection.commonValues.gasNext(
-          unexceptional ? currentSection.commonValues.gasActual - gasCost : 0);
-    } else {
-      currentSection.commonValues.gasCost(
-          0); // TODO: fill with correct values --- make sure this works in all cases
-      currentSection.commonValues.gasNext(0);
-    }
-
-    defers.resolvePostExecution(this, frame, operationResult);
-
-    if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
-      this.unlatchStack(frame);
-    }
-
-    switch (this.opCodeData().instructionFamily()) {
-      case ADD -> {}
-      case MOD -> {}
-      case MUL -> {}
-      case EXT -> {}
-      case WCP -> {}
-      case BIN -> {}
-      case SHF -> {}
-      case KEC -> {}
-      case CONTEXT -> {}
-      case ACCOUNT -> {}
-      case COPY -> {}
-      case TRANSACTION -> {}
-      case BATCH -> blockhash.tracePostOpcode(frame);
-      case STACK_RAM -> {}
-      case STORAGE -> {}
-      case JUMP -> {}
-      case MACHINE_STATE -> {}
-      case PUSH_POP -> {}
-      case DUP -> {}
-      case SWAP -> {}
-      case LOG -> {}
-      case CREATE -> romLex.tracePostOpcode(frame);
-      case CALL -> {}
-      case HALT -> {}
-      case INVALID -> {}
-      default -> {}
-    }
-  }
-
   public int getCfiByMetaData(
       final Address address, final int deploymentNumber, final boolean deploymentStatus) {
     return this.romLex()
@@ -880,21 +895,17 @@ public class Hub implements Module {
   }
 
   public CallFrame currentFrame() {
-    if (this.callStack().isEmpty()) {
-      return CallFrame.EMPTY;
-    }
-    return callStack.currentCallFrame();
+    return callStack().isEmpty() ? CallFrame.EMPTY : callStack.currentCallFrame();
   }
 
   public final MessageFrame messageFrame() {
-    final MessageFrame frame = callStack.currentCallFrame().frame();
-    return frame;
+    return callStack.currentCallFrame().frame();
   }
 
   private void handleStack(MessageFrame frame) {
     this.currentFrame()
         .stack()
-        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * state.stamps().hub());
+        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * (stamp() + 1));
   }
 
   void triggerModules(MessageFrame frame) {
@@ -922,24 +933,6 @@ public class Hub implements Module {
     if (pch.signals().shf()) {
       shf.tracePreOpcode(frame);
     }
-    if (pch.signals().mxp()) {
-      mxp.tracePreOpcode(frame);
-    }
-    if (pch.signals().oob()) {
-      oob.tracePreOpcode(frame);
-    }
-    if (pch.signals().stp()) {
-      stp.tracePreOpcode(frame);
-    }
-    if (pch.signals().exp()) {
-      exp.tracePreOpcode(frame);
-    }
-    if (pch.signals().trm()) {
-      trm.tracePreOpcode(frame);
-    }
-    if (pch.signals().hashInfo()) {
-      // TODO: this.hashInfo.tracePreOpcode(frame);
-    }
     if (pch.signals().blockhash()) {
       blockhash.tracePreOpcode(frame);
     }
@@ -965,10 +958,6 @@ public class Hub implements Module {
     state.currentTxTrace().add(section);
   }
 
-  private void unlatchStack(MessageFrame frame) {
-    this.unlatchStack(frame, this.currentTraceSection());
-  }
-
   public void unlatchStack(MessageFrame frame, TraceSection section) {
     if (this.currentFrame().pending() == null) {
       return;
@@ -981,16 +970,13 @@ public class Hub implements Module {
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;
         // Only pop from the stack if no exceptions have been encountered
+        // TODO: when we call this from contextReenter, pch.exceptions is not the one from the
+        // caller/creater ?
         if (Exceptions.none(pch.exceptions())) {
           result = frame.getStackItem(0).copy();
         }
 
         // This works because we are certain that the stack chunks are the first.
-        // TODO: the below check is useful in any case (to avoid unchecked cast)
-        //  but is this check hiding some underlying issue somewhere else?
-        //  TestRecursiveCallsWithByteCode was failing before this check
-        TraceFragment fragment = section.fragments().get(i);
-        checkArgument(fragment instanceof StackFragment);
         ((StackFragment) section.fragments().get(i))
             .stackOps()
             .get(line.resultColumn() - 1)
@@ -1008,10 +994,8 @@ public class Hub implements Module {
     if (currentFrame().stack().isOk()) {
       this.traceOpcode(frame);
     } else {
-
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
-
       new EarlyExceptionSection(this);
     }
 
@@ -1025,12 +1009,6 @@ public class Hub implements Module {
   //  execution after a CALL / CREATE ? One of them is
   //  necessarily false ...
   public long remainingGas() {
-    return this.state().getProcessingPhase() == TX_EXEC
-        ? this.currentFrame().frame().getRemainingGas()
-        : 0;
-  }
-
-  public long expectedGas() {
     return this.state().getProcessingPhase() == TX_EXEC
         ? this.currentFrame().frame().getRemainingGas()
         : 0;
@@ -1186,5 +1164,13 @@ public class Hub implements Module {
 
   public final boolean deploymentStatusOfAccountAddress() {
     return deploymentStatusOf(this.accountAddress());
+  }
+
+  public final boolean returnFromMessageCall(MessageFrame frame) {
+    return opCode() == RETURN && frame.getType() == MESSAGE_CALL;
+  }
+
+  public final boolean returnFromDeployment(MessageFrame frame) {
+    return opCode() == RETURN && frame.getType() == CONTRACT_CREATION;
   }
 }

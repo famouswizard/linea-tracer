@@ -48,6 +48,7 @@ tasks.withType(Test).configureEach {
 
   jvmArgs = [
     '-XX:-UseGCOverheadLimit',
+    '-XX:+PrintGC',
     // Mockito and jackson-databind do some strange reflection during tests.
     // This suppresses an illegal access warning.
     '--add-opens',
@@ -121,6 +122,7 @@ tasks.test.configure {
   useJUnitPlatform {
     excludeTags("nightly")
     excludeTags("replay")
+    excludeTags("weekly")
   }
 }
 
@@ -131,11 +133,12 @@ tasks.register("fastReplayTests", Test) {
     systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
     systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
     systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
-      System.getenv().get("REPLAY_TESTS_PARALLELISM").toInteger())
+      System.getenv().getOrDefault("REPLAY_TESTS_PARALLELISM", "1").toInteger())
   }
   useJUnitPlatform {
     includeTags("replay")
     excludeTags("nightly")
+    excludeTags("weekly")
   }
 }
 
@@ -149,7 +152,7 @@ tasks.register("nightlyReplayTests", Test) {
     systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
     systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
     systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
-      System.getenv().get("REPLAY_TESTS_PARALLELISM").toInteger())
+      System.getenv().getOrDefault("REPLAY_TESTS_PARALLELISM", "1").toInteger())
   }
 
   useJUnitPlatform {
@@ -171,5 +174,20 @@ tasks.register("nightlyTests", Test) {
 
   useJUnitPlatform {
     includeTags("nightly")
+  }
+}
+
+tasks.register("weeklyTests", Test) {
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+  systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+          System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "1").toInteger())
+
+  useJUnitPlatform {
+    excludeTags("nightly")
+    excludeTags("replay")
+    includeTags("weekly")
   }
 }
