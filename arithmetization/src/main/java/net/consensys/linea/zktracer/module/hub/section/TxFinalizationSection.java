@@ -89,9 +89,15 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     checkArgument(isSuccessful == txMetadata.statusCode());
 
     // TODO: do we switch off the deployment status at the end of a deployment ?
-    checkArgument(!deploymentInfo.getDeploymentStatus(senderAddress), "The sender may not be under deployment");
-    checkArgument(!deploymentInfo.getDeploymentStatus(recipientAddress), "The recipient may not be under deployment");
-    checkArgument(!deploymentInfo.getDeploymentStatus(coinbaseAddress), "The coinbase may not be under deployment");
+    checkArgument(
+        !deploymentInfo.getDeploymentStatus(senderAddress),
+        "The sender may not be under deployment");
+    checkArgument(
+        !deploymentInfo.getDeploymentStatus(recipientAddress),
+        "The recipient may not be under deployment");
+    checkArgument(
+        !deploymentInfo.getDeploymentStatus(coinbaseAddress),
+        "The coinbase may not be under deployment");
 
     if (isSuccessful) {
       successfulFinalization(hub);
