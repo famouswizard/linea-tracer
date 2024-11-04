@@ -54,11 +54,11 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     coinbaseSnapshotBeforeTxFinalization = AccountSnapshot.canonical(hub, coinbaseAddress);
 
     checkArgument(
-            senderSnapshotBeforeFinalization.isWarm(),
-            "The sender account ought to be warm during TX_FINL");
+        senderSnapshotBeforeFinalization.isWarm(),
+        "The sender account ought to be warm during TX_FINL");
     checkArgument(
-            recipientSnapshotBeforeFinalization.isWarm(),
-            "The recipient account ought to be warm during TX_FINL");
+        recipientSnapshotBeforeFinalization.isWarm(),
+        "The recipient account ought to be warm during TX_FINL");
     checkArgument(
         txMetadata.isCoinbaseWarmAtTransactionEnd()
             == coinbaseSnapshotBeforeTxFinalization.isWarm(),
@@ -115,7 +115,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
               .accountFragment()
               .make(
                   senderSnapshotBeforeFinalization,
-                      senderSnapshotAfterTxFinalization,
+                  senderSnapshotAfterTxFinalization,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
       AccountFragment coinbaseAccountFragment =
@@ -166,7 +166,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
               .accountFragment()
               .make(
                   senderSnapshotBeforeFinalization,
-                      senderSnapshotAfterTxFinalization,
+                  senderSnapshotAfterTxFinalization,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
       AccountFragment recipientAccountFragment =
@@ -174,7 +174,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
               .accountFragment()
               .make(
                   recipientSnapshotBeforeFinalization,
-                      recipientSnapshotAfterTxFinalization,
+                  recipientSnapshotAfterTxFinalization,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
       AccountFragment coinbaseAccountFragment =

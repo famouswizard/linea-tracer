@@ -19,22 +19,20 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 public class SelfBalanceTest {
 
-    @Test
-    void selfbalanceTest() {
-        final Bytes bytecode =
-                BytecodeCompiler.newProgram()
-                        .op(OpCode.ORIGIN)
-                        .op(OpCode.BALANCE)
-                        .push("0dde8be8f613e000")
-                        .op(OpCode.EQ)
-                        .op(OpCode.JUMPDEST)
-                        .compile();
-        System.out.println(bytecode.toHexString());
-        BytecodeRunner.of(bytecode).run();
-    }
+  @Test
+  void selfbalanceTest() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .op(OpCode.ORIGIN)
+            .op(OpCode.BALANCE)
+            .push("0dde8be8f613e000")
+            .op(OpCode.EQ)
+            .op(OpCode.JUMPDEST)
+            .compile();
+    System.out.println(bytecode.toHexString());
+    BytecodeRunner.of(bytecode).run();
+  }
 }

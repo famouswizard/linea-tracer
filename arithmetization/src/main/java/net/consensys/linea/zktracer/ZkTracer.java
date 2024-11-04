@@ -168,7 +168,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     if (!this.tracingExceptions.isEmpty()) {
       throw new TracingExceptions(this.tracingExceptions);
     }
-
   }
 
   @Override
