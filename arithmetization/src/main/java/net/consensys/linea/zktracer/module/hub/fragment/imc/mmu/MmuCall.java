@@ -417,7 +417,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     } else {
       return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
           .sourceId(precompileSubsection.exoModuleOperationId())
-          .exoBytes(Optional.of(precompileSubsection.returnData))
+          .exoBytes(Optional.of(leftPadTo(precompileSubsection.returnData, WORD_SIZE)))
           .targetId(precompileSubsection.returnDataContextNumber())
           .targetRamBytes(Optional.of(Bytes.EMPTY))
           .size(WORD_SIZE)
@@ -437,7 +437,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(precompileSubsection.returnDataContextNumber())
-        .sourceRamBytes(Optional.of(precompileSubsection.returnData))
+        .sourceRamBytes(Optional.of(leftPadTo(precompileSubsection.returnData, WORD_SIZE)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(precompileSubsection.callerMemorySnapshot))
         .sourceOffset(EWord.ZERO)
@@ -492,7 +492,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, PrecompileSubsection subsection, boolean successBit) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(subsection.exoModuleOperationId())
-        .exoBytes(Optional.of(subsection.returnData()))
+        .exoBytes(Optional.of(leftPadTo(subsection.returnData(), 2 * WORD_SIZE)))
         .targetId(subsection.exoModuleOperationId())
         .targetRamBytes(Optional.of(Bytes.EMPTY))
         .size(64)
@@ -505,7 +505,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, PrecompileSubsection subsection) {
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(subsection.exoModuleOperationId())
-        .sourceRamBytes(Optional.of(subsection.returnData()))
+        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), 2 * WORD_SIZE)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
         .targetOffset(EWord.of(subsection.parentReturnDataTarget.offset()))
@@ -532,7 +532,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, final PrecompileSubsection subsection, boolean successBit) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(subsection.exoModuleOperationId())
-        .exoBytes(Optional.of(subsection.returnData()))
+        .exoBytes(Optional.of(leftPadTo(subsection.returnData(), 2 * WORD_SIZE)))
         .targetId(subsection.exoModuleOperationId())
         .targetRamBytes(Optional.of(Bytes.EMPTY))
         .size(64)
@@ -545,7 +545,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, final PrecompileSubsection subsection) {
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(subsection.exoModuleOperationId())
-        .sourceRamBytes(Optional.of(subsection.returnData()))
+        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), 2 * WORD_SIZE)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
         .targetOffset(EWord.of(subsection.parentReturnDataTarget().offset()))
@@ -642,7 +642,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.returnData()))
+        .exoBytes(Optional.of(leftPadTo(subsection.returnData(), WORD_SIZE)))
         .targetId(precompileContextNumber)
         .targetRamBytes(Optional.of(Bytes.EMPTY))
         .size(64)
@@ -655,7 +655,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(precompileContextNumber)
-        .sourceRamBytes(Optional.of(subsection.returnData()))
+        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), WORD_SIZE)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
         .size(64)
@@ -786,7 +786,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, final ModexpSubsection modexpSubsection, final ModexpMetadata modExpMetadata) {
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(modexpSubsection.exoModuleOperationId())
-        .sourceRamBytes(Optional.of(modexpSubsection.returnData()))
+        .sourceRamBytes(
+            Optional.of(leftPadTo(modexpSubsection.returnData, MODEXP_COMPONENT_BYTE_SIZE)))
         .targetId(modexpSubsection.callSection.hubStamp())
         .targetRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
         .sourceOffset(EWord.of(MODEXP_COMPONENT_BYTE_SIZE - modExpMetadata.mbs().toInt()))
