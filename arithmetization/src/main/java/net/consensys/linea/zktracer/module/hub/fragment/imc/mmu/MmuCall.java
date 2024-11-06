@@ -582,7 +582,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     } else {
       return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
           .sourceId(precompileContextNumber)
-          .exoBytes(Optional.of(subsection.returnData()))
+          .exoBytes(Optional.of(leftPadTo(subsection.returnData(), WORD_SIZE)))
           .targetId(precompileContextNumber)
           .targetRamBytes(Optional.of(Bytes.EMPTY))
           .size(WORD_SIZE)
@@ -597,12 +597,12 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(precompileContextNumber)
-        .sourceRamBytes(Optional.of(subsection.returnData()))
+        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), WORD_SIZE)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
         .targetOffset(EWord.of(subsection.parentReturnDataTarget.offset()))
         .size(subsection.parentReturnDataTarget.length())
-        .referenceSize(32);
+        .referenceSize(WORD_SIZE);
   }
 
   public static MmuCall parameterExtractionForBlake(
