@@ -51,15 +51,15 @@ public class MxpOperation extends ModuleOperation {
   public static final BigInteger TWO_POW_128 = BigInteger.ONE.shiftLeft(128);
   public static final BigInteger TWO_POW_32 = BigInteger.ONE.shiftLeft(32);
 
-  final MxpCall mxpCall;
+  @Getter final MxpCall mxpCall;
   private final int contextNumber;
 
   private BigInteger maxOffset1 = BigInteger.ZERO;
   private BigInteger maxOffset2 = BigInteger.ZERO;
   private BigInteger maxOffset = BigInteger.ZERO;
 
-  private boolean roob;
-  private boolean noOperation;
+  @Getter private boolean roob;
+  @Getter private boolean noOperation;
   private boolean comp;
 
   private BigInteger acc1 = BigInteger.ZERO;
@@ -186,6 +186,8 @@ public class MxpOperation extends ModuleOperation {
         final MemorySpan returnDataRecipientSegment =
             OperationAncillaries.returnDataRequestedSegment(frame);
 
+        // TODO: double check why these values do not correspond to the ones set in
+        //  memoryExpansionExceptionTest
         mxpCall.setOffset1(EWord.of(callDataSegment.offset()));
         mxpCall.setSize1(EWord.of(callDataSegment.length()));
 
@@ -283,6 +285,7 @@ public class MxpOperation extends ModuleOperation {
       maxOffset = max(maxOffset1, maxOffset2);
       mxpCall.setMxpx(maxOffset.compareTo(TWO_POW_32) >= 0);
     }
+    System.out.println("");
   }
 
   public void setExpands() {

@@ -1,15 +1,15 @@
 package net.consensys.linea.zktracer.exceptions;
 
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.MEMORY_EXPANSION_EXCEPTION;
-import static net.consensys.linea.zktracer.module.mxp.MxpTest.opCodesType2;
-import static net.consensys.linea.zktracer.module.mxp.MxpTest.opCodesType3;
-import static net.consensys.linea.zktracer.module.mxp.MxpTest.opCodesType4Halting;
-import static net.consensys.linea.zktracer.module.mxp.MxpTest.opCodesType4NotHalting;
-import static net.consensys.linea.zktracer.module.mxp.MxpTest.triggerNonTrivialButMxpxOrRoobForOpCode;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType2;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType3;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType5;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.triggerNonTrivialButMxpxOrRoobForOpCode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -33,6 +33,8 @@ public class MemoryExpansionExceptionTest {
     assertEquals(
         MEMORY_EXPANSION_EXCEPTION,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    assertEquals(triggerRoob, bytecodeRunner.getHub().mxp().operations().getLast().isRoob());
+    assertTrue(bytecodeRunner.getHub().mxp().operations().getLast().getMxpCall().isMxpx());
   }
 
   private static Stream<Arguments> memoryExpansionExceptionTestSource() {
@@ -45,13 +47,14 @@ public class MemoryExpansionExceptionTest {
       arguments.add(Arguments.of(false, MxpType.TYPE_3, opCode));
       arguments.add(Arguments.of(true, MxpType.TYPE_3, opCode));
     }
-    for (OpCode opCode :
-        Stream.concat(Arrays.stream(opCodesType4NotHalting), Arrays.stream(opCodesType4Halting))
-            .toArray(OpCode[]::new)) {
+    for (OpCode opCode : opCodesType4) {
       arguments.add(Arguments.of(false, MxpType.TYPE_4, opCode));
       arguments.add(Arguments.of(true, MxpType.TYPE_4, opCode));
     }
-    // TODO: OpCode.COPY-type (Type 4) and OpCode.CALL-type (Type 5)
+    for (OpCode opCode : opCodesType5) {
+      arguments.add(Arguments.of(false, MxpType.TYPE_5, opCode));
+      arguments.add(Arguments.of(true, MxpType.TYPE_5, opCode));
+    }
     return arguments.stream();
   }
 }
