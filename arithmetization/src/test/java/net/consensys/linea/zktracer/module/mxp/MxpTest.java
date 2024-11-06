@@ -51,12 +51,14 @@ public class MxpTest {
   private static final Random RAND = new Random(123456789123456L);
   public static final EWord TWO_POW_128 = EWord.of(EWord.ONE.shiftLeft(128));
   public static final EWord TWO_POW_32 = EWord.of(EWord.ONE.shiftLeft(32));
+  static final int MAX_BYTE_SIZE =
+      32; // To trigger MXPX we need at least 5 bytes, while ROOB at least 17 bytes
 
   // Some OpCodes are not interesting with random arguments, so we skip them in random testing part
-  final OpCode[] opCodesType1 = new OpCode[] {OpCode.MSIZE};
-  final OpCode[] opCodesType2 = new OpCode[] {OpCode.MLOAD, OpCode.MSTORE};
-  final OpCode[] opCodesType3 = new OpCode[] {OpCode.MSTORE8};
-  final OpCode[] opCodesType4 =
+  public static final OpCode[] opCodesType1 = new OpCode[] {OpCode.MSIZE};
+  public static final OpCode[] opCodesType2 = new OpCode[] {OpCode.MLOAD, OpCode.MSTORE};
+  public static final OpCode[] opCodesType3 = new OpCode[] {OpCode.MSTORE8};
+  public static final OpCode[] opCodesType4NotHalting =
       new OpCode[] {
         OpCode.LOG0,
         OpCode.LOG1,
@@ -69,10 +71,11 @@ public class MxpTest {
         OpCode.EXTCODECOPY,
         OpCode.CREATE,
         OpCode.CREATE2
-      }; // OpCode.COPY-type (Type 4) and OpCode.CALL-type (Type 5) are tested via TestCall()
-  // instead of TestMxpRandom
+      };
+  // OpCode.COPY-type (Type 4) and OpCode.CALL-type (Type 5) are tested via testCall()
+  // instead of testMxpRandom()
 
-  final OpCode[] opCodesHalting = new OpCode[] {OpCode.RETURN, OpCode.REVERT};
+  public static final OpCode[] opCodesType4Halting = new OpCode[] {OpCode.RETURN, OpCode.REVERT};
 
   @Test
   void testMxpMinimalNonEmptyReturn() {
@@ -293,12 +296,15 @@ public class MxpTest {
             contractMO1Account,
             contractMO2Account);
 
-    ToyExecutionEnvironmentV2.builder()
-        .accounts(accounts)
-        .transaction(tx)
-        .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
-        .build()
-        .run();
+    ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder()
+            .accounts(accounts)
+            .transaction(tx)
+            .transactionProcessingResultValidator(
+                TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+            .build();
+
+    toyExecutionEnvironmentV2.run();
   }
 
   // Support methods
@@ -327,7 +333,7 @@ public class MxpTest {
       opCode = getRandomOpCodeByType(mxpType);
     } else {
       mxpType = MxpType.TYPE_4;
-      opCode = opCodesHalting[RAND.nextInt(opCodesHalting.length)]; // opCodeLast
+      opCode = opCodesType4Halting[RAND.nextInt(opCodesType4Halting.length)]; // opCodeLast
     }
 
     // Generate as many random values as needed at most
@@ -467,8 +473,6 @@ public class MxpTest {
 
   private void triggerNonTrivialButMxpxOrRoob(
       BytecodeCompiler program, boolean isHalting, boolean triggerRoob) {
-    final int MAX_BYTE_SIZE =
-        32; // To trigger MXPX we need at least 5 bytes, while ROOB at least 17 bytes
     MxpType mxpType;
     OpCode opCode;
 
@@ -477,9 +481,13 @@ public class MxpTest {
       opCode = getRandomOpCodeByType(mxpType);
     } else {
       mxpType = MxpType.TYPE_4;
-      opCode = opCodesHalting[RAND.nextInt(opCodesHalting.length)]; // opCodeLast
+      opCode = opCodesType4Halting[RAND.nextInt(opCodesType4Halting.length)]; // opCodeLast
     }
+    triggerNonTrivialButMxpxOrRoobForOpCode(program, triggerRoob, mxpType, opCode);
+  }
 
+  public static void triggerNonTrivialButMxpxOrRoobForOpCode(
+      BytecodeCompiler program, boolean triggerRoob, MxpType mxpType, OpCode opCode) {
     // Generate as many random values as needed at most
     EWord size1;
     EWord offset1;
@@ -547,7 +555,7 @@ public class MxpTest {
     }
   }
 
-  private boolean isRoob(MxpType randomMxpType, EWord size1, EWord offset1) {
+  private static boolean isRoob(MxpType randomMxpType, EWord size1, EWord offset1) {
 
     final boolean condition4And5 = offset1.compareTo(TWO_POW_128) >= 0 && !size1.isZero();
 
@@ -559,7 +567,7 @@ public class MxpTest {
     };
   }
 
-  private boolean isMxpx(MxpType randomMxpType, EWord size1, EWord offset1) {
+  private static boolean isMxpx(MxpType randomMxpType, EWord size1, EWord offset1) {
     EWord maxOffset1 = EWord.ZERO;
     EWord maxOffset2 = EWord.ZERO;
     EWord maxOffset;
@@ -579,7 +587,7 @@ public class MxpTest {
     return maxOffset.compareTo(TWO_POW_32) >= 0;
   }
 
-  private void appendOpCodeCall(List<Bytes> args, OpCode opCode, BytecodeCompiler program) {
+  private static void appendOpCodeCall(List<Bytes> args, OpCode opCode, BytecodeCompiler program) {
     for (Bytes arg : args) {
       program.push(arg);
     }
@@ -592,7 +600,7 @@ public class MxpTest {
 
   // Generates a BigInteger that requires a random number of bytes to be represented in [minBytes,
   // maxBytes)
-  private EWord getRandomBigIntegerByBytesSize(int minBytes, int maxBytes) {
+  private static EWord getRandomBigIntegerByBytesSize(int minBytes, int maxBytes) {
     if (minBytes < 0 || maxBytes > 32 || minBytes > maxBytes) {
       throw new IllegalArgumentException("Invalid input values");
     }
@@ -602,7 +610,7 @@ public class MxpTest {
     return EWord.of(new BigInteger(numBits == 0 ? 1 : numBits, RAND));
   }
 
-  private List<EWord> getRandomUpTo32BytesBigIntegers(int n) {
+  private static List<EWord> getRandomUpTo32BytesBigIntegers(int n) {
     List<EWord> randomBigIntegers = new ArrayList<>();
     for (int i = 0; i < n; i++) {
       randomBigIntegers.add(EWord.of(getRandomBigIntegerByBytesSize(0, 32)));
@@ -615,7 +623,7 @@ public class MxpTest {
       case TYPE_1 -> opCodesType1[RAND.nextInt(opCodesType1.length)];
       case TYPE_2 -> opCodesType2[RAND.nextInt(opCodesType2.length)];
       case TYPE_3 -> opCodesType3[RAND.nextInt(opCodesType3.length)];
-      case TYPE_4 -> opCodesType4[RAND.nextInt(opCodesType4.length)];
+      case TYPE_4 -> opCodesType4NotHalting[RAND.nextInt(opCodesType4NotHalting.length)];
       default -> OpCode.MSIZE; // We never enter the default case since we skip MxpType.NONE
     };
   }
