@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.mmu;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.Util.slice;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.MODEXP_COMPONENT_BYTE_SIZE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_RIPEMD_HI;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_RIPEMD_LO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_SHA2_HI;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_SHA2_LO;
@@ -66,7 +65,6 @@ import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
-import static org.apache.tuweni.bytes.Bytes.minimalBytes;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.Optional;
@@ -412,7 +410,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       return new MmuCall(hub, MMU_INST_MSTORE)
           .targetId(precompileSubsection.exoModuleOperationId())
           .targetOffset(EWord.ZERO)
-          .limb1(isShaTwo ? bigIntegerToBytes(EMPTY_SHA2_HI) : minimalBytes(EMPTY_RIPEMD_HI))
+          .limb1(
+              isShaTwo
+                  ? bigIntegerToBytes(EMPTY_SHA2_HI)
+                  : Bytes.fromHexString("0x9c1185a5")) // EMPTY_RIPEMD_LO
           .limb2(isShaTwo ? bigIntegerToBytes(EMPTY_SHA2_LO) : bigIntegerToBytes(EMPTY_RIPEMD_LO));
     } else {
       return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
