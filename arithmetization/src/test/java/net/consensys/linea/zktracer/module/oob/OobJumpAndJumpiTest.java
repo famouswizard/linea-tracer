@@ -125,7 +125,7 @@ public class OobJumpAndJumpiTest {
 
     assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
     assertEquals(
-      JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
   }
 
   @Test
@@ -154,7 +154,7 @@ public class OobJumpAndJumpiTest {
 
     assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
     assertEquals(
-      JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
   }
 
   @Test
@@ -335,7 +335,7 @@ public class OobJumpAndJumpiTest {
 
     assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
     assertEquals(
-      JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
   }
 
   @Test
@@ -365,7 +365,7 @@ public class OobJumpAndJumpiTest {
 
     assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
     assertEquals(
-      JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+        JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
   }
 
   @Test
