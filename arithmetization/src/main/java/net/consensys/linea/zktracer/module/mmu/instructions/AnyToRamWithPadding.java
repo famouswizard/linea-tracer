@@ -564,10 +564,12 @@ public class AnyToRamWithPadding implements MmuInstruction {
     // Setting padding micro instructions
     if (totInitialRightZeroes != 0) {
       someDataOnlyOrFirstPaddingInstruction(mmuData);
-      for (int i = 1; i < totInitialRightZeroes - 1; i++) {
-        someDataMiddlePaddingInstruction(mmuData, i);
+      if (!totalRightZeroIsOne) {
+        for (int i = 1; i < totInitialRightZeroes - 1; i++) {
+          someDataMiddlePaddingInstruction(mmuData, i);
+        }
+        someDataLastPaddingInstruction(mmuData);
       }
-      someDataLastPaddingInstruction(mmuData);
     }
   }
 
