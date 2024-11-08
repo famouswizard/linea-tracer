@@ -96,6 +96,7 @@ import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
@@ -199,20 +200,24 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall callDataCopy(final Hub hub) {
-    final CallDataInfo callDataInfo = hub.currentFrame().callDataInfo();
+    final CallFrame currentFrame = hub.currentFrame();
+    final CallDataInfo callDataInfo = currentFrame.callDataInfo();
+    final MessageFrame parentFrame = hub.callStack().parent().frame();
+    final Bytes sourceBytes =
+        currentFrame.depth() == 0
+            ? hub.txStack().current().getTransactionCallData()
+            : parentFrame.shadowReadMemory(0, parentFrame.memoryByteSize());
 
     return new MmuCall(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING)
         .sourceId((int) callDataInfo.callDataContextNumber())
-        .sourceRamBytes(Optional.ofNullable(callDataInfo.data()))
-        .targetId(hub.currentFrame().contextNumber())
+        .sourceRamBytes(Optional.ofNullable(sourceBytes))
+        .targetId(currentFrame.contextNumber())
         .targetRamBytes(
             Optional.of(
-                hub.currentFrame()
-                    .frame()
-                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
-        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
-        .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
-        .size(clampedToLong(hub.messageFrame().getStackItem(2)))
+                currentFrame.frame().shadowReadMemory(0, currentFrame.frame().memoryByteSize())))
+        .sourceOffset(EWord.of(currentFrame.frame().getStackItem(1)))
+        .targetOffset(EWord.of(currentFrame.frame().getStackItem(0)))
+        .size(clampedToLong(currentFrame.frame().getStackItem(2)))
         .referenceOffset(callDataInfo.memorySpan().offset())
         .referenceSize(callDataInfo.memorySpan().length());
   }
