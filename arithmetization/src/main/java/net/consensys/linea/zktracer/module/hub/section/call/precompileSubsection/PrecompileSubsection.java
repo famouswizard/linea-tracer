@@ -151,10 +151,13 @@ public class PrecompileSubsection
 
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
-    callSuccess = bytesToBoolean(hub.messageFrame().getStackItem(0));
+    callSuccess = bytesToBoolean(frame.frame().getStackItem(0));
     returnData = frame.frame().getReturnData();
 
-    frame.returnDataContextNumber(exoModuleOperationId());
+    final int returnerCn = exoModuleOperationId();
+    final CallFrame returnerFrame = hub.callStack().getByContextNumber(returnerCn);
+    returnerFrame.returnData(returnData);
+    frame.returnDataContextNumber(returnerCn);
     frame.returnDataSpan(new MemorySpan(0, returnData.size()));
 
     if (callSuccess) {

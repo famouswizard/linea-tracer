@@ -63,6 +63,7 @@ import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.MBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
@@ -282,7 +283,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     return new MmuCall(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING)
         .sourceId(returnerFrame.contextNumber())
         .sourceRamBytes(
-            Optional.of(extractContiguousLimbsFromMemory(returnerFrame.frame(), returnDataSegment)))
+            Optional.of(
+                isPrecompile(returnerFrame.accountAddress())
+                    ? returnerFrame.returnData()
+                    : extractContiguousLimbsFromMemory(returnerFrame.frame(), returnDataSegment)))
         .targetId(currentFrame.contextNumber())
         .targetRamBytes(
             Optional.of(
