@@ -44,18 +44,6 @@ public class CallDataTests {
 
     @Test
     void nonAlignedCallDataInCallTest() {
-        Bytes bytecode = BytecodeCompiler.newProgram()
-                .push(callData32)
-                .push(1)
-                .op(OpCode.MSTORE)
-                .push(44) // r@c, shorter than the return data
-                .push(19) // r@o, deliberately overlaps with call data
-                .push(32) // cds
-                .push(1) // cdo
-                .push("ca11da7ac0de") // address
-                .op(OpCode.GAS) // gas
-                .op(OpCode.STATICCALL)
-                .compile();
 
         Transaction transaction = transactionCallingCallDataCodeAccount();
         ToyExecutionEnvironmentV2.builder()
@@ -88,10 +76,30 @@ public class CallDataTests {
             .op(OpCode.RETURN) // the final instruction will expand memory
             .compile();
 
+    final Bytes callerCode = BytecodeCompiler.newProgram()
+            .push(callData32)
+            .push(1)
+            .op(OpCode.MSTORE)
+            .push(44) // r@c, shorter than the return data
+            .push(19) // r@o, deliberately overlaps with call data
+            .push(32) // cds
+            .push(1) // cdo
+            .push("ca11da7ac0de") // address
+            .op(OpCode.GAS) // gas
+            .op(OpCode.STATICCALL)
+            .compile();
+
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address userAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
     ToyAccount userAccount =
             ToyAccount.builder().balance(Wei.fromEth(10)).nonce(99).address(userAddress).build();
+    ToyAccount targetOfTransaction =
+            ToyAccount.builder()
+                    .balance(Wei.fromEth(1))
+                    .nonce(13)
+                    .address(Address.fromHexString("ca11ee"))
+                    .code(callerCode)
+                    .build();
     ToyAccount callDataCodeAccount =
             ToyAccount.builder()
                     .balance(Wei.fromEth(1))
@@ -99,12 +107,13 @@ public class CallDataTests {
                     .address(Address.fromHexString("ca11da7ac0de"))
                     .code(callDataByteCode)
                     .build();
-    List<ToyAccount> accounts = List.of( userAccount, callDataCodeAccount);
+
+    List<ToyAccount> accounts = List.of( userAccount, callDataCodeAccount, targetOfTransaction);
 
     Transaction transactionCallingCallDataCodeAccount() {
         return ToyTransaction.builder()
                 .sender(userAccount)
-                .to(callDataCodeAccount)
+                .to(targetOfTransaction)
                 .payload(callData32)
                 .transactionType(TransactionType.FRONTIER)
                 .value(Wei.ONE)
