@@ -50,7 +50,9 @@ public class MxpTestUtils {
       new OpCode[] {OpCode.CALL, OpCode.CALLCODE, OpCode.DELEGATECALL, OpCode.STATICCALL};
 
   public static void triggerNonTrivialButMxpxOrRoobForOpCode(
-      BytecodeCompiler program, boolean triggerRoob, MxpType mxpType, OpCode opCode) {
+      BytecodeCompiler program, boolean triggerRoob, OpCode opCode) {
+    MxpType mxpType = opCode.getData().billing().type();
+
     // Generate as many random values as needed at most
     EWord size1;
     EWord size2;

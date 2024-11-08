@@ -454,18 +454,16 @@ public class MxpTest {
 
   private void triggerNonTrivialButMxpxOrRoob(
       BytecodeCompiler program, boolean isHalting, boolean triggerRoob) {
-    MxpType mxpType;
     OpCode opCode;
 
     if (!isHalting) {
-      mxpType = MxpType.values()[RAND.nextInt(2, 5)]; // Type 2 to 4
+      MxpType mxpType = MxpType.values()[RAND.nextInt(2, 5)]; // Type 2 to 4
       opCode = getRandomOpCodeByType(mxpType);
     } else {
-      mxpType = MxpType.TYPE_4;
       opCode = opCodesType4Halting[RAND.nextInt(opCodesType4Halting.length)]; // opCodeLast
     }
     // OpCode.CALL-type (Type 5) are tested via testCall()
-    triggerNonTrivialButMxpxOrRoobForOpCode(program, triggerRoob, mxpType, opCode);
+    triggerNonTrivialButMxpxOrRoobForOpCode(program, triggerRoob, opCode);
   }
 
   private OpCode getRandomOpCodeByType(MxpType mxpType) {

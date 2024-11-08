@@ -32,13 +32,11 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
-import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.MemorySpan;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -181,18 +179,27 @@ public class MxpOperation extends ModuleOperation {
         mxpCall.setOffset1(EWord.of(frame.getStackItem(1)));
         mxpCall.setSize1(EWord.of(frame.getStackItem(2)));
       }
-      case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
-        final MemorySpan callDataSegment = OperationAncillaries.callDataSegment(frame);
-        final MemorySpan returnDataRecipientSegment =
-            OperationAncillaries.returnDataRequestedSegment(frame);
+      case CALL, CALLCODE -> {
+        EWord offset1 = EWord.of(frame.getStackItem(3));
+        EWord size1 = EWord.of(frame.getStackItem(4));
+        EWord offset2 = EWord.of(frame.getStackItem(5));
+        EWord size2 = EWord.of(frame.getStackItem(6));
 
-        // TODO: double check why these values do not correspond to the ones set in
-        //  memoryExpansionExceptionTest
-        mxpCall.setOffset1(EWord.of(callDataSegment.offset()));
-        mxpCall.setSize1(EWord.of(callDataSegment.length()));
+        mxpCall.setOffset1(offset1);
+        mxpCall.setSize1(size1);
+        mxpCall.setOffset2(offset2);
+        mxpCall.setSize2(size2);
+      }
+      case DELEGATECALL, STATICCALL -> {
+        EWord offset1 = EWord.of(frame.getStackItem(2));
+        EWord size1 = EWord.of(frame.getStackItem(3));
+        EWord offset2 = EWord.of(frame.getStackItem(4));
+        EWord size2 = EWord.of(frame.getStackItem(5));
 
-        mxpCall.setOffset2(EWord.of(returnDataRecipientSegment.offset()));
-        mxpCall.setSize2(EWord.of(returnDataRecipientSegment.length()));
+        mxpCall.setOffset1(offset1);
+        mxpCall.setSize1(size1);
+        mxpCall.setOffset2(offset2);
+        mxpCall.setSize2(size2);
       }
       default -> throw new IllegalStateException("Unexpected value: " + opCode);
     }
