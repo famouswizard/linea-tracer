@@ -67,6 +67,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import lombok.Getter;
@@ -96,7 +97,6 @@ import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
@@ -202,11 +202,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   public static MmuCall callDataCopy(final Hub hub) {
     final CallFrame currentFrame = hub.currentFrame();
     final CallDataInfo callDataInfo = currentFrame.callDataInfo();
-    final MessageFrame parentFrame = hub.callStack().parent().frame();
-    final Bytes sourceBytes =
-        currentFrame.depth() == 0
-            ? hub.txStack().current().getTransactionCallData()
-            : parentFrame.shadowReadMemory(0, parentFrame.memoryByteSize());
+    final Bytes sourceBytes = hub.callStack().getFullMemoryOfCaller(hub);
 
     return new MmuCall(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING)
         .sourceId((int) callDataInfo.callDataContextNumber())
@@ -220,6 +216,33 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .size(clampedToLong(currentFrame.frame().getStackItem(2)))
         .referenceOffset(callDataInfo.memorySpan().offset())
         .referenceSize(callDataInfo.memorySpan().length());
+  }
+
+  public static MmuCall callDataLoad(final Hub hub) {
+    final CallFrame currentFrame = hub.currentFrame();
+    final long callDataSize = currentFrame.callDataInfo().memorySpan().length();
+    final long callDataOffset = currentFrame.callDataInfo().memorySpan().offset();
+    final EWord sourceOffset = EWord.of(currentFrame.frame().getStackItem(0));
+    final long callDataCN = currentFrame.callDataInfo().callDataContextNumber();
+    final Bytes sourceBytes = hub.callStack().getFullMemoryOfCaller(hub);
+    final int totalSourceOffset = (int) (callDataOffset + clampedToLong(sourceOffset));
+
+    final EWord read =
+        EWord.of(
+            Bytes.wrap(
+                Arrays.copyOfRange(
+                    sourceBytes.toArrayUnsafe(),
+                    totalSourceOffset,
+                    totalSourceOffset + WORD_SIZE)));
+
+    return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
+        .sourceId((int) callDataCN)
+        .sourceRamBytes(Optional.of(sourceBytes))
+        .sourceOffset(sourceOffset)
+        .referenceOffset(callDataOffset)
+        .referenceSize(callDataSize)
+        .limb1(read.hi())
+        .limb2(read.lo());
   }
 
   public static MmuCall LogX(final Hub hub, final LogData logData) {
