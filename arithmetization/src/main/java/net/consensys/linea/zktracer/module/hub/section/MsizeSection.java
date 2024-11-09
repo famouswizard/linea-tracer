@@ -12,6 +12,18 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.precompiles;
+package net.consensys.linea.zktracer.module.hub.section;
 
-public class PrecompileTests {}
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+
+public class MsizeSection extends TraceSection {
+  public MsizeSection(Hub hub) {
+    super(hub, (short) 3);
+
+    final MxpCall mxpCall = new MxpCall(hub);
+    final ImcFragment imcFragment = ImcFragment.empty(hub).callMxp(mxpCall);
+    this.addStackAndFragments(hub, imcFragment);
+  }
+}

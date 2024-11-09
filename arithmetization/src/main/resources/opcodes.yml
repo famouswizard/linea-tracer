@@ -312,6 +312,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
+      flag1: true
   - mnemonic: CALLER
     value: 0x33
     instructionFamily: CONTEXT
@@ -407,7 +408,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      flag1: true
+      flag2: true
   - mnemonic: EXTCODESIZE
     value: 0x3b
     instructionFamily: ACCOUNT
@@ -428,7 +429,7 @@ opcodes:
       delta: 4
       nbAdded: 0
       nbRemoved: 4
-      staticGas: G_VERY_LOW
+      staticGas: G_ZERO
       flag4: true
     billing:
       byWord:
@@ -571,6 +572,7 @@ opcodes:
       nbAdded: 0
       nbRemoved: 1
       staticGas: G_BASE
+      flag1: true
   - mnemonic: MLOAD
     value: 0x51
     instructionFamily: STACK_RAM
@@ -623,6 +625,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
+      flag1: true
   - mnemonic: SSTORE
     value: 0x55
     instructionFamily: STORAGE
@@ -634,7 +637,7 @@ opcodes:
       nbRemoved: 2
       staticGas: S_HUB
       forbiddenInStatic: true
-      flag1: true
+      flag2: true
   - mnemonic: JUMP
     value: 0x56
     instructionFamily: JUMP
@@ -714,7 +717,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH2
     value: 0x61
     instructionFamily: PUSH_POP
@@ -725,7 +728,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH3
     value: 0x62
     instructionFamily: PUSH_POP
@@ -736,7 +739,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH4
     value: 0x63
     instructionFamily: PUSH_POP
@@ -747,7 +750,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH5
     value: 0x64
     instructionFamily: PUSH_POP
@@ -758,7 +761,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH6
     value: 0x65
     instructionFamily: PUSH_POP
@@ -769,7 +772,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH7
     value: 0x66
     instructionFamily: PUSH_POP
@@ -780,7 +783,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH8
     value: 0x67
     instructionFamily: PUSH_POP
@@ -791,7 +794,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH9
     value: 0x68
     instructionFamily: PUSH_POP
@@ -802,7 +805,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH10
     value: 0x69
     instructionFamily: PUSH_POP
@@ -813,7 +816,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH11
     value: 0x6a
     instructionFamily: PUSH_POP
@@ -824,7 +827,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH12
     value: 0x6b
     instructionFamily: PUSH_POP
@@ -835,7 +838,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH13
     value: 0x6c
     instructionFamily: PUSH_POP
@@ -846,7 +849,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH14
     value: 0x6d
     instructionFamily: PUSH_POP
@@ -857,7 +860,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH15
     value: 0x6e
     instructionFamily: PUSH_POP
@@ -868,7 +871,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH16
     value: 0x6f
     instructionFamily: PUSH_POP
@@ -879,7 +882,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH17
     value: 0x70
     instructionFamily: PUSH_POP
@@ -890,7 +893,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH18
     value: 0x71
     instructionFamily: PUSH_POP
@@ -901,7 +904,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH19
     value: 0x72
     instructionFamily: PUSH_POP
@@ -912,7 +915,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH20
     value: 0x73
     instructionFamily: PUSH_POP
@@ -923,7 +926,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH21
     value: 0x74
     instructionFamily: PUSH_POP
@@ -934,7 +937,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH22
     value: 0x75
     instructionFamily: PUSH_POP
@@ -945,7 +948,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH23
     value: 0x76
     instructionFamily: PUSH_POP
@@ -956,7 +959,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH24
     value: 0x77
     instructionFamily: PUSH_POP
@@ -967,7 +970,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH25
     value: 0x78
     instructionFamily: PUSH_POP
@@ -978,7 +981,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH26
     value: 0x79
     instructionFamily: PUSH_POP
@@ -989,7 +992,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH27
     value: 0x7a
     instructionFamily: PUSH_POP
@@ -1000,7 +1003,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH28
     value: 0x7b
     instructionFamily: PUSH_POP
@@ -1011,7 +1014,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH29
     value: 0x7c
     instructionFamily: PUSH_POP
@@ -1022,7 +1025,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH30
     value: 0x7d
     instructionFamily: PUSH_POP
@@ -1033,7 +1036,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH31
     value: 0x7e
     instructionFamily: PUSH_POP
@@ -1044,7 +1047,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH32
     value: 0x7f
     instructionFamily: PUSH_POP
@@ -1055,7 +1058,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: DUP1
     value: 0x80
     instructionFamily: DUP

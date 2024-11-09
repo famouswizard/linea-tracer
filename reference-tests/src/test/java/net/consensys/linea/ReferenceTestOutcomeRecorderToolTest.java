@@ -16,7 +16,6 @@ package net.consensys.linea;
 
 import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.parseBlockchainReferenceTestOutcome;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -53,13 +52,13 @@ public class ReferenceTestOutcomeRecorderToolTest {
         "test1", TestState.FAILED, Map.of("Constraint", Set.of(module1, module2)));
     ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
         "test2", TestState.FAILED, Map.of("Constraint", Set.of(module1)));
-    ReferenceTestOutcomeRecorderTool.writeToJsonFile(JSON_OUTPUT_FILENAME_TEST);
+    ReferenceTestOutcomeRecorderTool.writeToJsonFile();
 
     readBlockchainReferenceTestsOutput(JSON_OUTPUT_FILENAME_TEST)
         .thenApply(
             jsonString -> {
               BlockchainReferenceTestOutcome blockchainReferenceTestOutcome =
-                  parseBlockchainReferenceTestOutcome(jsonString);
+                  ReferenceTestOutcomeRecorderTool.parseBlockchainReferenceTestOutcome(jsonString);
 
               ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
                   modulesToConstraints =
@@ -137,11 +136,43 @@ public class ReferenceTestOutcomeRecorderToolTest {
             + "\n"
             + "Caused by:\n"
             + "    constraints failed: \u001B[31m\u001B[1mrlptxrcpt.phase3\u001B[0m\u001B[39m, \u001B[31m\u001B[1mtxndata-into-wcp\u001B[0m\u001B[39m, \u001B[31m\u001B[1mtxndata-into-rlptxrcpt\u001B[0m\u001B[39m, \u001B[31m\u001B[1mtxndata.cumulative-gas\u001B[0m\u001B[39m, \u001B[31m\u001B[1mrlptxrcpt.phase-transition\u001B[0m\u001B[39m\n"
-            + "]";
+            + "]"
+            + "      at app//net.consensys.linea.testing.ExecutionEnvironment.checkTracer(ExecutionEnvironment.java:72)\n"
+            + "      at app//net.consensys.linea.GeneralStateReferenceTestTools.executeTest(GeneralStateReferenceTestTools.java:235)\n"
+            + "      at app//net.consensys.linea.generated.generalstate.GeneralStateReferenceTest_200.execution(GeneralStateReferenceTest_200.java:60)\n"
+            + "      at java.base@21.0.2/java.lang.reflect.Method.invoke(Method.java:580)\n"
+            + "      at java.base@21.0.2/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387)\n"
+            + "      at java.base@21.0.2/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)\n"
+            + "      at java.base@21.0.2/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)\n"
+            + "      at java.base@21.0.2/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)\n"
+            + "      at java.base@21.0.2/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)";
 
     Map<String, Set<String>> res = ReferenceTestOutcomeRecorderTool.extractConstraints(message);
     assertThat(res.size()).isEqualTo(2);
     assertThat(res.get("txndata")).isEqualTo(Set.of("wcp", "rlptxrcpt", "cumulative-gas"));
     assertThat(res.get("rlptxrcpt")).isEqualTo(Set.of("phase3", "phase-transition"));
+  }
+
+  @Test
+  void parseBlockchainReferenceTestOutcome() {
+    BlockchainReferenceTestOutcome outcome =
+        ReferenceTestOutcomeRecorderTool.parseBlockchainReferenceTestOutcome(
+            """
+            {
+              "abortedCounter": 20,
+              "disabledCounter": 0,
+              "failedCounter": 4,
+              "modulesToConstraintsToTests": {
+                "ASSERTION_FAILED": {
+                  "expected: true but was: fals": [
+                    "InitCollision_d0g0v0_London[London]",
+                    "sstore_combinations_initial21_d9g0v0_London[London]"
+                    ]
+                 }
+              },
+              "successCounter": 0
+            }""");
+    assertThat(outcome.getAbortedCounter()).isEqualTo(20);
+    assertThat(outcome.getModulesToConstraintsToTests().size()).isEqualTo(1);
   }
 }
