@@ -31,7 +31,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.TxTrace;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragment;
@@ -48,7 +47,6 @@ public class TraceSection {
   private final Hub hub;
   public final CommonFragmentValues commonValues;
   @Getter List<TraceFragment> fragments;
-  @Getter @Setter private TxTrace parentTrace;
   /* A link to the previous section */
   @Setter public TraceSection previousSection = null;
   /* A link to the next section */

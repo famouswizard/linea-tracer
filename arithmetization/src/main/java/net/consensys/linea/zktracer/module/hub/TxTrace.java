@@ -57,7 +57,6 @@ public class TxTrace {
    * @param section the section to append
    */
   public void add(TraceSection section) {
-    section.parentTrace(this);
     // Link the current section with the previous and next one
     final TraceSection previousSection = this.trace.isEmpty() ? null : this.trace.getLast();
     if (previousSection != null) {
