@@ -51,10 +51,6 @@ public class ConflationStorageTest {
     );
     // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
-    // compute the addresses for several accounts that will be deployed later
-    tc.newAddresses[0] = tc.getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000002");
-    tc.newAddresses[1] = tc.getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000003");
-    tc.newAddresses[2] = tc.getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000004");
 
     // prepare a multi-block execution of transactions
     MultiBlockExecutionEnvironment.builder()
@@ -67,21 +63,21 @@ public class ConflationStorageTest {
             .addBlock(List.of(tc.readFromStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], 123L, false, BigInteger.ONE)))
             .addBlock(List.of(tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.addresses[0], 123L, 15L, false, BigInteger.ONE)))
             // deploy another account and perform storage operations on it
-            .addBlock(List.of(tc.deployWithCreate2(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000002", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(tc.deployWithCreate2(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.frameworkEntryPointAddress, tc.salts[0], TestContext.snippetsCodeForCreate2)))
             .addBlock(List.of(tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[0], 345L, 20L, false, BigInteger.ONE)))
             .addBlock(List.of(tc.readFromStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[0], 345L, false, BigInteger.ONE)))
             .addBlock(List.of(tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[0], 345L, 40L, false, BigInteger.ONE)))
             // deploy another account and self destruct it at the end, redeploy it and change the storage again
             // the salt will be the same twice in a row, which will be on purpose
-            .addBlock(List.of(tc.deployWithCreate2(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000003", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(tc.deployWithCreate2(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.frameworkEntryPointAddress, tc.salts[1], TestContext.snippetsCodeForCreate2)))
             .addBlock(List.of(tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[1], 400L, 12L, false, BigInteger.ONE)))
             .addBlock(List.of(tc.readFromStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[1], 400L, false, BigInteger.ONE)))
             .addBlock(List.of(tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[1], 400L, 13L, false, BigInteger.ONE)))
             .addBlock(List.of(tc.selfDestruct(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[1], tc.frameworkEntryPointAddress, false, BigInteger.ONE)))
-            .addBlock(List.of(tc.deployWithCreate2(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000003", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(tc.deployWithCreate2(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.frameworkEntryPointAddress, tc.salts[1], TestContext.snippetsCodeForCreate2)))
             .addBlock(List.of(tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[1], 400L, 99L, false, BigInteger.ONE)))
             // deploy a new account and check revert operations on it
-            .addBlock(List.of(tc.deployWithCreate2(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000004", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(tc.deployWithCreate2(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.frameworkEntryPointAddress, tc.salts[2], TestContext.snippetsCodeForCreate2)))
             .addBlock(List.of(tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[2], 500L, 23L, false, BigInteger.ONE)))
             .addBlock(List.of(tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[2], 500L, 53L, true, BigInteger.ONE))) // revert flag on
             .addBlock(List.of(tc.writeToStorage(tc.externallyOwnedAccounts[0], tc.keyPairs[0], tc.newAddresses[2], 500L, 63L, true, BigInteger.ONE))) // revert flag on
