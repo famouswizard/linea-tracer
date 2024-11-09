@@ -42,6 +42,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
 
   public TxFinalizationSection(Hub hub, WorldView world) {
     super(hub, (short) 4);
+
     txMetadata = hub.txStack().current();
 
     final Address senderAddress = txMetadata.getSender();
@@ -49,17 +50,17 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     final Address coinbaseAddress = txMetadata.getCoinbase();
 
     // recipient
-    senderSnapshotBeforeFinalization = AccountSnapshot.canonical(hub, senderAddress);
-    recipientSnapshotBeforeFinalization = AccountSnapshot.canonical(hub, recipientAddress);
-    coinbaseSnapshotBeforeTxFinalization = AccountSnapshot.canonical(hub, coinbaseAddress);
+    senderSnapshotBeforeFinalization = AccountSnapshot.canonical(hub, world, senderAddress);
+    recipientSnapshotBeforeFinalization = AccountSnapshot.canonical(hub, world, recipientAddress);
+    coinbaseSnapshotBeforeTxFinalization = AccountSnapshot.canonical(hub, world, coinbaseAddress);
 
-    //  TODO: re-enable checks
-    // checkArgument(
-    //         senderSnapshotBeforeFinalization.isWarm(),
-    //         "The sender account ought to be warm during TX_FINL");
-    // checkArgument(
-    //         recipientSnapshotBeforeFinalization.isWarm(),
-    //         "The recipient account ought to be warm during TX_FINL");
+    // TODO: re-enable checks
+    checkArgument(
+        senderSnapshotBeforeFinalization.isWarm(),
+        "The sender account ought to be warm during TX_FINL");
+    checkArgument(
+        recipientSnapshotBeforeFinalization.isWarm(),
+        "The recipient account ought to be warm during TX_FINL");
     checkArgument(
         txMetadata.isCoinbaseWarmAtTransactionEnd()
             == coinbaseSnapshotBeforeTxFinalization.isWarm(),
@@ -75,27 +76,27 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     final boolean coinbaseWarmth = txMetadata.isCoinbaseWarmAtTransactionEnd();
 
     final Address senderAddress = senderSnapshotBeforeFinalization.address();
-    senderSnapshotAfterTxFinalization = AccountSnapshot.canonical(hub, senderAddress);
+    senderSnapshotAfterTxFinalization = AccountSnapshot.canonical(hub, world, senderAddress);
     senderSnapshotAfterTxFinalization.turnOnWarmth(); // purely constraints based
 
     final Address recipientAddress = recipientSnapshotBeforeFinalization.address();
-    recipientSnapshotAfterTxFinalization = AccountSnapshot.canonical(hub, recipientAddress);
+    recipientSnapshotAfterTxFinalization = AccountSnapshot.canonical(hub, world, recipientAddress);
     recipientSnapshotAfterTxFinalization.turnOnWarmth(); // purely constraints based
 
     final Address coinbaseAddress = coinbaseSnapshotBeforeTxFinalization.address();
-    coinbaseSnapshotAfterFinalization = AccountSnapshot.canonical(hub, coinbaseAddress);
+    coinbaseSnapshotAfterFinalization = AccountSnapshot.canonical(hub, world, coinbaseAddress);
     coinbaseSnapshotAfterFinalization.setWarmthTo(coinbaseWarmth); // purely constraints based
 
     DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     checkArgument(isSuccessful == txMetadata.statusCode());
 
     // TODO: do we switch off the deployment status at the end of a deployment ?
-    checkArgument(
-        !deploymentInfo.getDeploymentStatus(senderAddress),
-        "The sender may not be under deployment");
-    checkArgument(
-        !deploymentInfo.getDeploymentStatus(recipientAddress),
-        "The recipient may not be under deployment");
+    // checkArgument(
+    //     !deploymentInfo.getDeploymentStatus(senderAddress),
+    //     "The sender may not be under deployment");
+    // checkArgument(
+    //     !deploymentInfo.getDeploymentStatus(recipientAddress),
+    //     "The recipient may not be under deployment");
     checkArgument(
         !deploymentInfo.getDeploymentStatus(coinbaseAddress),
         "The coinbase may not be under deployment");

@@ -67,6 +67,14 @@ public class AccountSnapshot {
     return canonicalSnapshot;
   }
 
+  public static AccountSnapshot canonical(Hub hub, WorldView world, Address address) {
+    return fromArguments(
+        world,
+        address,
+        hub.transients.conflation().deploymentInfo(),
+        isAddressWarm(hub.messageFrame(), address));
+  }
+
   public static AccountSnapshot canonical(
       Hub hub, WorldView world, Address address, boolean warmth) {
     return fromArguments(world, address, hub.transients.conflation().deploymentInfo(), warmth);
