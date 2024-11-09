@@ -207,7 +207,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
     return new MmuCall(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING)
         .sourceId((int) callDataInfo.callDataContextNumber())
-        .sourceRamBytes(Optional.ofNullable(sourceBytes))
+        .sourceRamBytes(Optional.of(sourceBytes))
         .targetId(currentFrame.contextNumber())
         .targetRamBytes(
             Optional.of(

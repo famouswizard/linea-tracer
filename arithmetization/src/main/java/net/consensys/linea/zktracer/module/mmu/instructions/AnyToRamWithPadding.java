@@ -534,7 +534,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
     // Setting if the transition data / padding is made in 1 or 2 mmio instructions
     dataToPaddingTransitionTakesTwoMmioInstructions =
         totInitialRightZeroes != 0
-            && (onlyDataTransferMaxesOutTarget || lastDataTransferMaxesOutTarget);
+            && (!onlyDataTransferMaxesOutTarget || !lastDataTransferMaxesOutTarget);
 
     // Setting Microinstruction constant values
     mmuData.mmuToMmioConstantValues(
