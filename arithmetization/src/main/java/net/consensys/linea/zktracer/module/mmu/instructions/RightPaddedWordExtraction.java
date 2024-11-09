@@ -46,10 +46,9 @@ import org.apache.tuweni.bytes.Bytes;
 public class RightPaddedWordExtraction implements MmuInstruction {
   private final Euc euc;
   private final Wcp wcp;
-  private List<MmuEucCallRecord> eucCallRecords;
-  private List<MmuWcpCallRecord> wcpCallRecords;
+  private final List<MmuEucCallRecord> eucCallRecords;
+  private final List<MmuWcpCallRecord> wcpCallRecords;
 
-  private boolean firstLimbPadded;
   private short firstLimbByteSize;
   private boolean secondLimbPadded;
   private short secondLimbByteSize;
@@ -60,8 +59,6 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   private Bytes sourceLimbOffset;
   private Bytes sourceByteOffset;
   private boolean secondLimbVoid;
-  private int firstMicroInst;
-  private int secondMicroInst;
 
   public RightPaddedWordExtraction(Euc euc, Wcp wcp) {
     this.euc = euc;
@@ -119,7 +116,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     wcpCallRecords.add(
         MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
 
-    firstLimbPadded = wcpResult;
+    final boolean firstLimbPadded = wcpResult;
     if (!secondLimbPadded) {
       secondLimbByteSize = LLARGE;
     } else {
@@ -212,6 +209,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   }
 
   private void firstMicroInstruction(MmuData mmuData) {
+    int firstMicroInst;
     if (firstLimbSingleSource) {
       firstMicroInst =
           firstLimbIsFull ? MMIO_INST_RAM_TO_LIMB_TRANSPLANT : MMIO_INST_RAM_TO_LIMB_ONE_SOURCE;
@@ -230,6 +228,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   }
 
   private void secondMicroInstruction(MmuData mmuData) {
+    int secondMicroInst;
     if (secondLimbVoid) {
       secondMicroInst = MMIO_INST_LIMB_VANISHES;
     } else {
