@@ -689,8 +689,9 @@ public class Hub implements Module {
               coinbaseIsWarm,
               txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
-      if (state.getProcessingPhase() != TX_SKIP) {
-        state.setProcessingPhase(TX_FINL);
+      if (state.getProcessingPhase() != TX_SKIP
+          && frame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
+        this.state.setProcessingPhase(TX_FINL);
         new TxFinalizationSection(this, frame.getWorldUpdater());
       }
     }
@@ -748,6 +749,12 @@ public class Hub implements Module {
 
     if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
       this.unlatchStack(frame, currentSection);
+    }
+
+    if (frame.getDepth() == 0
+        && (frame.getState() == MessageFrame.State.EXCEPTIONAL_HALT || opCode() == REVERT)) {
+      this.state.setProcessingPhase(TX_FINL);
+      new TxFinalizationSection(this, frame.getWorldUpdater());
     }
   }
 
