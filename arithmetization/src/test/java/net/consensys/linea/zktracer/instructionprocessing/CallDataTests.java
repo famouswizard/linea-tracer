@@ -81,11 +81,11 @@ public class CallDataTests {
   final Bytes callerCode =
       BytecodeCompiler.newProgram()
           .push(callData32)
-          .push(1)
+          .push(2)
           .op(OpCode.MSTORE)
           .push(44) // r@c, shorter than the return data
           .push(19) // r@o, deliberately overlaps with call data
-          .push(32) // cds
+          .push(35) // cds
           .push(1) // cdo
           .push("ca11da7ac0de") // address
           .op(OpCode.GAS) // gas
