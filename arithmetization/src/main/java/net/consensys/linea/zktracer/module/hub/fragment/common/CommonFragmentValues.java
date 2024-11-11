@@ -95,7 +95,7 @@ public class CommonFragmentValues {
     this.gasExpected = isExec ? computeGasExpected() : 0;
     this.gasActual = isExec ? computeGasRemaining() : 0;
     this.gasCost = isExec ? computeGasCost() : 0;
-    this.gasNext = isExec ? computeGasNext() : 0;
+    this.gasNext = isExec ? computeGasNext(exceptions) : 0;
     this.gasCostExcluduingDeploymentCost = isExec ? computeGasCostExcludingDeploymentCost() : 0;
 
     final InstructionFamily instructionFamily = hub.opCode().getData().instructionFamily();
@@ -231,18 +231,16 @@ public class CommonFragmentValues {
     return Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasCostExcludingDeploymentCost();
   }
 
-  public long computeGasNext() {
+  public long computeGasNext(short exceptions) {
 
-    if (hub.isExceptional()) {
+    if (Exceptions.any(exceptions)) {
       return 0;
     }
 
     final long gasAfterDeductingCost = computeGasRemaining() - computeGasCost();
 
     return switch (hub.opCodeData().instructionFamily()) {
-      case KEC, COPY, STACK_RAM, STORAGE, LOG, HALT -> (hub.raisesOogxOrIsUnexceptional()
-          ? gasAfterDeductingCost
-          : 0);
+      case KEC, COPY, STACK_RAM, STORAGE, LOG, HALT -> gasAfterDeductingCost;
       case CREATE -> gasAfterDeductingCost
           - Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasPaidOutOfPocket();
       case CALL -> // TODO: this will not work because of 1. aborts with value transfers 2. EOA

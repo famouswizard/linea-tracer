@@ -807,11 +807,6 @@ public class Hub implements Module {
     return !isUnexceptional();
   }
 
-  public boolean raisesOogxOrIsUnexceptional() {
-    return currentTraceSection().commonValues.tracedException() == OUT_OF_GAS_EXCEPTION
-        || isUnexceptional();
-  }
-
   /**
    * If the current execution context is a deployment context the present method "exits" that
    * deployment in the sense that it updates the relevant deployment information.
