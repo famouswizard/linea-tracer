@@ -38,6 +38,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor
@@ -254,5 +255,23 @@ public class CommonFragmentValues {
       //  care for pricing because of ⒈ warmth and ⒉ log computations
       gasAfterDeductingCost;
     };
+  }
+
+  public long gasCostToTrace() {
+
+    if (hubProcessingPhase != TX_EXEC
+            || tracedException() == TracedException.STACK_UNDERFLOW
+            || tracedException() == TracedException.STACK_OVERFLOW
+            || tracedException() == TracedException.RETURN_DATA_COPY_FAULT
+            || tracedException() == TracedException.MEMORY_EXPANSION_EXCEPTION
+            || tracedException() == TracedException.STATIC_FAULT
+            || tracedException() == TracedException.INVALID_CODE_PREFIX
+            || tracedException() == TracedException.MAX_CODE_SIZE_EXCEPTION) {
+      return 0;
+    }
+
+    // TODO @Olivier: special care for CALL's and CREATE's
+
+    return gasCost;
   }
 }
