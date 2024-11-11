@@ -22,6 +22,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.CallDataLoad;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallDataLoadOobCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -42,7 +43,7 @@ public class CallDataLoadSection extends TraceSection {
 
     if (Exceptions.none(exception)) {
       if (!oobCall.isCdlOutOfBounds()) {
-        final MmuCall mmuCall = MmuCall.callDataLoad(hub);
+        final CallDataLoad mmuCall = (CallDataLoad) MmuCall.callDataLoad(hub);
         imcFragment.callMmu(mmuCall);
       }
     } else {

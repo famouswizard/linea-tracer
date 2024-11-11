@@ -18,44 +18,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.mmu;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.Util.slice;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.MODEXP_COMPONENT_BYTE_SIZE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_RIPEMD_LO;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_SHA2_HI;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_SHA2_LO;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXO_SUM_WEIGHT_BLAKEMODEXP;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXO_SUM_WEIGHT_ECDATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXO_SUM_WEIGHT_KEC;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXO_SUM_WEIGHT_LOG;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXO_SUM_WEIGHT_RIPSHA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXO_SUM_WEIGHT_ROM;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXO_SUM_WEIGHT_TXCD;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_ANY_TO_RAM_WITH_PADDING;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_BLAKE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_INVALID_CODE_PREFIX;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MLOAD;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MODEXP_DATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MODEXP_ZERO;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MSTORE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_EXO_WITH_PADDING;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_RAM_SANS_PADDING;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_BLAKE_DATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_BLAKE_PARAMS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_BLAKE_RESULT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECADD_DATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECADD_RESULT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECMUL_DATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECMUL_RESULT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECPAIRING_DATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECPAIRING_RESULT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECRECOVER_DATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECRECOVER_RESULT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_BASE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_EXPONENT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_MODULUS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_RESULT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_DATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_RIPEMD_160;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
@@ -68,7 +31,6 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 import lombok.Getter;
@@ -80,11 +42,7 @@ import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.CodeCopy;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.Create;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.Create2;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.ExtCodeCopy;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.ReturnFromDeploymentMmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.*;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.EllipticCurvePrecompileSubsection;
@@ -220,30 +178,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall callDataLoad(final Hub hub) {
-    final CallFrame currentFrame = hub.currentFrame();
-    final long callDataSize = currentFrame.callDataInfo().memorySpan().length();
-    final long callDataOffset = currentFrame.callDataInfo().memorySpan().offset();
-    final EWord sourceOffset = EWord.of(currentFrame.frame().getStackItem(0));
-    final long callDataCN = currentFrame.callDataInfo().callDataContextNumber();
-    final Bytes sourceBytes = hub.callStack().getFullMemoryOfCaller(hub);
-    final int totalSourceOffset = (int) (callDataOffset + clampedToLong(sourceOffset));
-
-    final EWord read =
-        EWord.of(
-            Bytes.wrap(
-                Arrays.copyOfRange(
-                    sourceBytes.toArrayUnsafe(),
-                    totalSourceOffset,
-                    totalSourceOffset + WORD_SIZE)));
-
-    return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
-        .sourceId((int) callDataCN)
-        .sourceRamBytes(Optional.of(sourceBytes))
-        .sourceOffset(sourceOffset)
-        .referenceOffset(callDataOffset)
-        .referenceSize(callDataSize)
-        .limb1(read.hi())
-        .limb2(read.lo());
+    return new CallDataLoad(hub);
   }
 
   public static MmuCall LogX(final Hub hub, final LogData logData) {
@@ -290,9 +225,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .targetId(currentFrame.contextNumber())
         .targetRamBytes(
             Optional.of(
-                currentFrame
-                    .frame()
-                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
+                currentFrame.frame().shadowReadMemory(0, currentFrame.frame().memoryByteSize())))
         .sourceOffset(EWord.of(currentFrame.frame().getStackItem(1)))
         .targetOffset(EWord.of(currentFrame.frame().getStackItem(0)))
         .size(clampedToLong(currentFrame.frame().getStackItem(2)))
