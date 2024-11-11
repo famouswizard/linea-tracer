@@ -46,7 +46,7 @@ public class BalanceTests {
   }
 
   @Test
-  void revertedValueTransfer() {
+  void revertedValueTransferTest() {
 
     ToyExecutionEnvironmentV2.builder()
         .accounts(accounts)
