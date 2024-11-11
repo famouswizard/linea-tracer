@@ -135,7 +135,7 @@ public class ToyWorld implements WorldUpdater {
     if (addressAccountMap.containsKey(address)) {
       return addressAccountMap.get(address);
     } else if (parent != null) {
-      Account parentAccount = parent.getAccount(address);
+      Account parentAccount = parent.get(address);
       if (parentAccount == null) {
         return null;
       } else {
@@ -225,7 +225,7 @@ public class ToyWorld implements WorldUpdater {
     // Initialise storage
     for (StorageSnapshot s : conflation.storage()) {
       world
-          .getAccount(Words.toAddress(Bytes.fromHexString(s.address())))
+          .get(Words.toAddress(Bytes.fromHexString(s.address())))
           .setStorageValue(UInt256.fromHexString(s.key()), UInt256.fromHexString(s.value()));
     }
   }
