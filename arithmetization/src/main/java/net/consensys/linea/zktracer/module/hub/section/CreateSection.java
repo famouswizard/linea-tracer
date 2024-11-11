@@ -194,7 +194,7 @@ public class CreateSection extends TraceSection
           new ShakiraDataOperation(hub.stamp(), create2InitCode);
       hub.shakiraData().call(shakiraDataOperation);
 
-      triggerHashInfo(shakiraDataOperation.result());
+      writeHashInfoResult(shakiraDataOperation.result());
     }
 
     value = failedCreate ? Wei.ZERO : Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(0)));

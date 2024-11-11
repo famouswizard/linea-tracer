@@ -188,10 +188,9 @@ public class TraceSection {
     return stackFragments;
   }
 
-  public void triggerHashInfo(Bytes hash) {
+  public void writeHashInfoResult(Bytes hash) {
     for (TraceFragment fragment : this.fragments()) {
       if (fragment instanceof StackFragment) {
-        ((StackFragment) fragment).hashInfoFlag = true;
         ((StackFragment) fragment).hash = hash;
       }
     }

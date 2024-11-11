@@ -236,7 +236,7 @@ public class ReturnSection extends TraceSection
           MmuCall.returnFromDeployment(hub);
       secondImcFragment.callMmu(nonemptyDeploymentMmuCall);
 
-      triggerHashInfo(nonemptyDeploymentMmuCall.hashResult());
+      writeHashInfoResult(nonemptyDeploymentMmuCall.hashResult());
 
       if (hub.messageFrame().getDepth() == 0) {
         this.addDeploymentAccountFragmentIfRoot(hub, mxpCall);
