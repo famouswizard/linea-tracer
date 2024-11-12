@@ -56,7 +56,9 @@ public class ToyExecutionEnvironmentV2 {
   @Builder.Default
   private final TransactionProcessingResultValidator transactionProcessingResultValidator =
       TransactionProcessingResultValidator.EMPTY_VALIDATOR;
-  // This was previously DEFAULT_VALIDATOR, however some tests we write are supposed to generate failing transactions
+
+  // This was previously DEFAULT_VALIDATOR, however some tests we write are supposed to generate
+  // failing transactions
   // Thus we cannot use the DEFAULT_VALIDATOR since it asserts that the transaction is successful
 
   @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
