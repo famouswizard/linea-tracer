@@ -264,7 +264,7 @@ public class ReplayExecutionEnvironment {
       // If/when all older replay files are recaptured, then this check should be redundant.
       if (!value.isZero()) {
         updater
-            .get(Words.toAddress(Bytes.fromHexString(s.address())))
+            .getAccount(Words.toAddress(Bytes.fromHexString(s.address())))
             .setStorageValue(key, value);
       }
     }
