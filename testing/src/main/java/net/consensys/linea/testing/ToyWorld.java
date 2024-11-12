@@ -225,7 +225,7 @@ public class ToyWorld implements WorldUpdater {
     // Initialise storage
     for (StorageSnapshot s : conflation.storage()) {
       world
-          .get(Words.toAddress(Bytes.fromHexString(s.address())))
+          .getAccount(Words.toAddress(Bytes.fromHexString(s.address())))
           .setStorageValue(UInt256.fromHexString(s.key()), UInt256.fromHexString(s.value()));
     }
   }
