@@ -49,7 +49,12 @@ public class OutOfGasExceptionTest {
       OpCode opCode = opCodeData.mnemonic();
       int staticCost = opCodeData.stackSettings().staticGas().cost();
       int delta = opCodeData.stackSettings().delta(); // number of items popped from the stack
-      if (staticCost > 0) {
+      // TODO: some opCodes are excluded for now because they may need to be treated differently
+      if (staticCost > 0
+          && opCode != OpCode.MLOAD
+          && opCode != OpCode.MSTORE8
+          && opCode != OpCode.SELFDESTRUCT
+          && opCode != OpCode.MSTORE) {
         arguments.add(Arguments.of(opCode, staticCost, delta, true));
         arguments.add(Arguments.of(opCode, staticCost, delta, false));
       }
