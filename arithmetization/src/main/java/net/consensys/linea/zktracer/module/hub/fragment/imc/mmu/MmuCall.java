@@ -475,7 +475,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), 2 * WORD_SIZE)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
-        .targetOffset(EWord.of(subsection.parentReturnDataTarget.offset()))
+        .referenceOffset(subsection.parentReturnDataTarget.offset())
         .size(subsection.parentReturnDataTarget.length())
         .referenceSize(64);
   }
@@ -515,7 +515,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), 2 * WORD_SIZE)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
-        .targetOffset(EWord.of(subsection.parentReturnDataTarget().offset()))
+        .referenceOffset(subsection.parentReturnDataTarget().offset())
         .size(subsection.parentReturnDataTarget().length())
         .referenceSize(64);
   }
@@ -566,7 +566,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), WORD_SIZE)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
-        .targetOffset(EWord.of(subsection.parentReturnDataTarget.offset()))
+        .referenceOffset(subsection.parentReturnDataTarget.offset())
         .size(subsection.parentReturnDataTarget.length())
         .referenceSize(WORD_SIZE);
   }
